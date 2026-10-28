@@ -1,0 +1,33 @@
+{
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "VXSearch",
+        "width": 720,
+        "height": 540,
+        "minWidth": 640,
+        "minHeight": 440,
+        "center": true,
+        "resizable": true,
+        "decorations": false
+      },
+      {
+        "label": "quick_search",
+        "title": "Tìm nhanh VXSearch",
+        "url": "index.html?view=quick_search",
+        "width": 380,
+        "height": 64,
+        "resizable": false,
+        "decorations": false,
+        "visible": false,
+        "focus": false,
+        "skipTaskbar": true,
+        "alwaysOnTop": true,
+        "visibleOnAllWorkspaces": true,
+        "shadow": true,
+        "backgroundColor": "#0f1117"
+      }
+    ]
+  }
+}

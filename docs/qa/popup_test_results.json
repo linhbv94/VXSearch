@@ -1,0 +1,174 @@
+{
+  "evidence_class": "browser_explicit_two_window_IPC_fixture",
+  "checks": [
+    {
+      "name": "compact popup only search controls without full App polling",
+      "status": "passed"
+    },
+    {
+      "name": "empty and IME Enter never submit",
+      "status": "passed"
+    },
+    {
+      "name": "query persists for cold main and is acknowledged after delivery",
+      "status": "passed"
+    },
+    {
+      "name": "ready main receives Unicode and duplicate Enter is blocked",
+      "status": "passed"
+    },
+    {
+      "name": "structured submit error is readable and retry stays available",
+      "status": "passed"
+    },
+    {
+      "name": "Escape hides popup without changing main query",
+      "status": "passed"
+    },
+    {
+      "name": "reopen selects query and reloads saved light theme",
+      "status": "passed"
+    }
+  ],
+  "errors": [],
+  "calls": [
+    {
+      "view": "popup",
+      "command": "get_settings",
+      "args": {}
+    },
+    {
+      "view": "popup",
+      "command": "get_settings",
+      "args": {}
+    },
+    {
+      "view": "popup",
+      "command": "submit_quick_search",
+      "args": {
+        "query": "Báo cáo .pdf"
+      }
+    },
+    {
+      "view": "main",
+      "command": "get_system_status",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "get_watched_roots",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "get_settings",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "get_system_status",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "get_watched_roots",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "get_settings",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "get_pending_search",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "search_files",
+      "args": {
+        "params": {
+          "query": "",
+          "filter_type": "all",
+          "root_id": null,
+          "sort_by": "relevance",
+          "limit": 50,
+          "offset": 0
+        }
+      }
+    },
+    {
+      "view": "main",
+      "command": "ack_pending_search",
+      "args": {
+        "id": 1
+      }
+    },
+    {
+      "view": "popup",
+      "command": "submit_quick_search",
+      "args": {
+        "query": "  ảnh #2026 & final  "
+      }
+    },
+    {
+      "view": "main",
+      "command": "search_files",
+      "args": {
+        "params": {
+          "query": "Báo cáo .pdf",
+          "filter_type": "all",
+          "root_id": null,
+          "sort_by": "relevance",
+          "limit": 50,
+          "offset": 0
+        }
+      }
+    },
+    {
+      "view": "main",
+      "command": "get_pending_search",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "ack_pending_search",
+      "args": {
+        "id": 2
+      }
+    },
+    {
+      "view": "popup",
+      "command": "submit_quick_search",
+      "args": {
+        "query": "  ảnh #2026 & final  "
+      }
+    },
+    {
+      "view": "popup",
+      "command": "hide_quick_search",
+      "args": {}
+    },
+    {
+      "view": "popup",
+      "command": "get_settings",
+      "args": {}
+    },
+    {
+      "view": "main",
+      "command": "search_files",
+      "args": {
+        "params": {
+          "query": "  ảnh #2026 & final  ",
+          "filter_type": "all",
+          "root_id": null,
+          "sort_by": "relevance",
+          "limit": 50,
+          "offset": 0
+        }
+      }
+    }
+  ],
+  "pending": null
+}

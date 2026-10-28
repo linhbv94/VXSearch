@@ -1,0 +1,58 @@
+{
+  "evidence_class": "browser_with_explicit_IPC_fixture",
+  "checks": [
+    {
+      "name": "initial page limited to 50 rows",
+      "status": "passed"
+    },
+    {
+      "name": "offline open/reveal disabled, copy available",
+      "status": "passed"
+    },
+    {
+      "name": "late old response cannot replace latest query",
+      "status": "passed"
+    },
+    {
+      "name": "audio chip and root filter invoke correct payload",
+      "status": "passed"
+    },
+    {
+      "name": "native search_focus selects input",
+      "status": "passed"
+    },
+    {
+      "name": "open_panel settings, failed save rollback, focus trap",
+      "status": "passed"
+    },
+    {
+      "name": "button Enter does not trigger file Open",
+      "status": "passed"
+    },
+    {
+      "name": "pagination bounded and deleted last page recovers without loading lock",
+      "status": "passed"
+    },
+    {
+      "name": "query failure clears stale actionable results",
+      "status": "passed"
+    },
+    {
+      "name": "IME Enter never opens selected result",
+      "status": "passed"
+    },
+    {
+      "name": "folder merge confirms exact covered root IDs",
+      "status": "passed"
+    },
+    {
+      "name": "minimum viewport and no horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "name": "Windows composition through platform DTO",
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}

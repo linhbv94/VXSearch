@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-28",
+  "os": "26.7",
+  "architecture": "arm64",
+  "assets": [
+    {
+      "asset": "icon.png",
+      "copy": "src_tauri/icons/icon.png",
+      "sha256_equal": true
+    },
+    {
+      "asset": "icon.icns",
+      "copy": "src_tauri/icons/icon.icns",
+      "sha256_equal": true
+    },
+    {
+      "asset": "icon.ico",
+      "copy": "src_tauri/icons/icon.ico",
+      "sha256_equal": true
+    },
+    {
+      "asset": "../_summary/qr.png",
+      "copy": "public/support_qr.png",
+      "sha256_equal": true
+    }
+  ],
+  "initial_runtime_db": {
+    "roots": 0,
+    "entries": 0,
+    "integrity": "ok"
+  },
+  "native_gui_verification": "partial passed: picker, popup/query main, Dock lifecycle, Finder selection, Quit/restart; see menubar_native_evidence.json",
+  "windows_runtime": "not_run",
+  "physical_usb": "not_run",
+  "publication": "not_requested",
+  "final_bundle": {
+    "path": "/Users/vic/_Work/VXUtilities/vxsearch/src_tauri/target/release/bundle/macos/VXSearch.app",
+    "version": "0.1.0",
+    "executable_sha256": "48051e7ef1c872327743565737214c7b94fd3eeff0d0b6bdc8b89fe952c403cd",
+    "architecture": "arm64",
+    "sdk": "27.0",
+    "codesign_verify": "passed",
+    "signing": "ad-hoc",
+    "notarized": false,
+    "size_bytes": 17001617,
+    "running_pids": [
+      31826
+    ],
+    "backend_process_alive": true
+  },
+  "previous_bundle": {
+    "path": "/Users/vic/_Work/VXUtilities/vxsearch/src_tauri/target/release/bundle/macos/VXSearch.app",
+    "version": "0.1.0",
+    "executable_sha256": "eaef710b98ba8ffb1001039265c93c325881b8ad64e4a4210687cb6d02d9d3ac",
+    "architecture": "arm64",
+    "sdk": "27.0",
+    "codesign_verify": "passed",
+    "signing": "ad-hoc",
+    "notarized": false,
+    "size_bytes": 17001617,
+    "running_pids": [
+      30314
+    ],
+    "backend_process_alive": true
+  }
+}

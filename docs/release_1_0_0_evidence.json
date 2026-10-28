@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "state": "local_qa_passed",
+  "repo": "linhbv94/VXSearch",
+  "platforms": [
+    "windows_x64",
+    "macos_silicon",
+    "macos_intel"
+  ],
+  "engine": "shared Rust engine; no dummy",
+  "core_tests": 18,
+  "shell_tests": 4,
+  "browser_ui_groups": 13,
+  "browser_popup_groups": 7,
+  "runtime_limits": [
+    "Windows and Intel GUI not tested",
+    "physical USB/sleep/mixed-monitor/TCC not tested"
+  ],
+  "real_user_data_mutated": false,
+  "updater_secret_upload_authorized": true,
+  "updater_key_reused": false,
+  "backup_key_path": ".release_keys/vxsearch_updater.key",
+  "cost_profile": "public repo standard runners, no Actions cache or workflow artifacts",
+  "updater_tests": 10,
+  "release_tests": 7,
+  "native_qa": {
+    "platform": "macos_silicon",
+    "local_version": "1.0.0",
+    "picker": true,
+    "search_unicode_unaccent": true,
+    "watcher_create_rename_delete": true,
+    "restart_roots_index_retained": true,
+    "sqlite_integrity": "ok",
+    "fixture_sources_byte_mtime_exact": true,
+    "updater_pre_public": "Expected no stable release JSON; real error/details, no fake current"
+  }
+}

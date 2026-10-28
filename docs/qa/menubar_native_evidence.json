@@ -1,0 +1,41 @@
+{
+  "native_picker_add": "passed",
+  "native_indexed_entries": 3,
+  "background_create_observed": true,
+  "background_remove_observed": true,
+  "fixture_original_sha256_mtime_unchanged": true,
+  "close_policy_observed": {
+    "pid": 27711,
+    "activation_policy": 1,
+    "meaning": "Accessory"
+  },
+  "native_popup": "passed: user clicked menu bar, CUA observed only search input and Find button",
+  "native_query_handoff": {
+    "query": "bao cao",
+    "expected_file": "Báo cáo mẫu 2026.txt",
+    "observed_results": 1,
+    "status": "passed"
+  },
+  "native_reveal": {
+    "finder_window": "nested",
+    "selected_file": "/private/tmp/vxsearch_menubar_qa_s82ghabk/selected/nested/Báo cáo mẫu 2026.txt",
+    "status": "passed"
+  },
+  "native_quit": "passed via Cmd+Q, CUA reported App quit; restart restored fixture root",
+  "fixture_root_removed_via_ui": true,
+  "fixture_source_content_preserved": true,
+  "policy_after_close": "pid=30314 policy=1 terminated=false bundle=/Users/vic/_Work/VXUtilities/vxsearch/src_tauri/target/release/bundle/macos/VXSearch.app",
+  "policy_after_submit": "pid=30314 policy=0 terminated=false bundle=/Users/vic/_Work/VXUtilities/vxsearch/src_tauri/target/release/bundle/macos/VXSearch.app",
+  "sdk": "27.0",
+  "codesign_verify": "passed",
+  "native_limitations": [
+    "mixed-scale secondary monitor runtime not tested",
+    "popup Escape/IME checked in browser fixture; native menu click assisted by user",
+    "Windows runtime not tested"
+  ],
+  "popup_handoff_tested_executable_sha256": "eaef710b98ba8ffb1001039265c93c325881b8ad64e4a4210687cb6d02d9d3ac",
+  "final_executable_sha256": "48051e7ef1c872327743565737214c7b94fd3eeff0d0b6bdc8b89fe952c403cd",
+  "final_build_delta": "Only query duration presentation changed to two decimal places; 13 main UI groups re-passed. Native final build launched clean and Close observed Accessory.",
+  "final_build_policy_after_close": "pid=31826 policy=1 terminated=false bundle=/Users/vic/_Work/VXUtilities/vxsearch/src_tauri/target/release/bundle/macos/VXSearch.app",
+  "final_build_clean_main": "0 roots, 0 entries, empty query, duration 0.24ms observed via native AX"
+}

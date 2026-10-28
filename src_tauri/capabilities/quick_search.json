@@ -1,0 +1,10 @@
+{
+  "identifier": "quick_search",
+  "description": "Quick search popup events only; no window controls or filesystem access",
+  "windows": [
+    "quick_search"
+  ],
+  "permissions": [
+    "core:event:default"
+  ]
+}

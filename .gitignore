@@ -15,8 +15,10 @@ dist-ssr/
 
 # Rust & Tauri Build
 src-tauri/target/
+src_tauri/target/
+crates/search_core/target/
+src_tauri/gen/
 target/
-Cargo.lock
 
 # Tauri Config & Secrets
 src-tauri/tauri.conf.json.backup
@@ -36,3 +38,8 @@ yarn-error.log*
 pnpm-debug.log*
 .temp/
 .cache/
+
+# Private signing material, never stage
+.release_keys/
+*.key
+*.p12
