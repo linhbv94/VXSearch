@@ -1,0 +1,32 @@
+{
+  "name": "vxsearch",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "node scripts/tauri_sdk.mjs",
+    "test:ui": "node scripts/test_ui.mjs",
+    "test:core": "cargo test --manifest-path crates/search_core/Cargo.toml",
+    "test:popup": "node scripts/test_popup.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "lucide-react": "^1.52",
+    "react": "^19",
+    "react-dom": "^19",
+    "@tauri-apps/plugin-updater": "^2.14.0",
+    "@tauri-apps/plugin-process": "^2.4.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6",
+    "playwright": "^1.62.1",
+    "typescript": "^7",
+    "vite": "^8"
+  }
+}

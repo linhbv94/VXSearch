@@ -1,0 +1,154 @@
+name: Desktop release (free public runners)
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing stable version tag, e.g. v1.0.0'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop_release_${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      release_id: ${{ steps.draft.outputs.release_id }}
+      tag: ${{ steps.draft.outputs.tag }}
+      asset_prefix: ${{ steps.draft.outputs.asset_prefix }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - name: Select exact macOS SDK27.0
+        if: runner.os == 'macOS'
+        run: node scripts/macos_sdk_gate.mjs --select-ci
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check versions and signing configuration
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: node scripts/validate_release.mjs "$RELEASE_TAG"
+      - name: Prepare draft release
+        id: draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: node scripts/prepare_release.mjs
+
+  build:
+    needs: prepare
+    if: github.event.repository.private == false
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      # Serialize uploads so tauri-action can safely merge all platforms in latest.json.
+      max-parallel: 1
+      matrix:
+        include:
+          - runner: windows-2022
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+            asset_platform: windows_x64
+          - runner: xcode-27
+            target: aarch64-apple-darwin
+            bundles: app,dmg
+            asset_platform: macos_silicon
+          - runner: xcode-27
+            target: x86_64-apple-darwin
+            bundles: app,dmg
+            asset_platform: macos_intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select exact macOS SDK27.0
+        if: runner.os == 'macOS'
+        run: node scripts/macos_sdk_gate.mjs --select-ci
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install frontend dependencies
+        run: npm ci --ignore-scripts
+      - name: Rust shell regression
+        run: cargo test --locked --lib
+        working-directory: src_tauri
+      - name: Rust search, watcher and source-safety regression
+        run: cargo test --locked --manifest-path crates/search_core/Cargo.toml
+      - name: Frontend state and release regression
+        run: node --test scripts/test_updates.mjs scripts/test_release_automation.mjs
+      - name: Build and upload signed updater packages
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          releaseId: ${{ needs.prepare.outputs.release_id }}
+          tagName: ${{ needs.prepare.outputs.tag }}
+          releaseDraft: true
+          prerelease: false
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
+          # Signatures remain embedded in latest.json; omit duplicate standalone files.
+          uploadUpdaterSignatures: false
+          uploadWorkflowArtifacts: false
+          releaseAssetNamePattern: '${{ needs.prepare.outputs.asset_prefix }}_[version]_${{ matrix.asset_platform }}[_setup][ext]'
+          projectPath: .
+          tauriScript: npm run tauri
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} -- --locked
+
+  validate:
+    needs: [prepare, build]
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select exact macOS SDK27.0
+        if: runner.os == 'macOS'
+        run: node scripts/macos_sdk_gate.mjs --select-ci
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Validate layout, verify signatures and finalize user notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_ID: ${{ needs.prepare.outputs.release_id }}
+        run: |
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern latest.json --dir "$RUNNER_TEMP/vx_updater"
+          node scripts/finalize_release.mjs "$RUNNER_TEMP/vx_updater/latest.json"

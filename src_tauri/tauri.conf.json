@@ -1,0 +1,83 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "VXSearch",
+  "version": "1.0.0",
+  "identifier": "com.vxsearch.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost; script-src 'self'"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "VXSearch",
+        "width": 720,
+        "height": 540,
+        "minWidth": 640,
+        "minHeight": 440,
+        "resizable": true,
+        "center": true,
+        "decorations": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      },
+      {
+        "label": "quick_search",
+        "title": "Tìm nhanh VXSearch",
+        "url": "index.html?view=quick_search",
+        "width": 380,
+        "height": 64,
+        "resizable": false,
+        "decorations": false,
+        "visible": false,
+        "focus": false,
+        "skipTaskbar": true,
+        "alwaysOnTop": true,
+        "visibleOnAllWorkspaces": true,
+        "shadow": true,
+        "backgroundColor": "#0f1117"
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app",
+      "dmg",
+      "nsis"
+    ],
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "14.0",
+      "signingIdentity": "-"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgxNzk4N0FEMUQ4MzRCQjMKUldTelM0TWRyWWQ1Z1FuUDJIa0xtMTdWK2FFbFI3VnRzdW02Q01YY2oyUE9Oa0NiT01MRGhhblcK",
+      "endpoints": [
+        "https://github.com/linhbv94/VXSearch/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

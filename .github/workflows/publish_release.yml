@@ -1,0 +1,73 @@
+name: Publish tested release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Stable draft tag to publish, e.g. v1.2.2'
+        required: true
+        type: string
+      local_qa_passed:
+        description: 'Release author confirmed local QA for the tagged app code'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop_release_${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.event.repository.private == false && inputs.local_qa_passed
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # Keep different versions from racing to become latest; workflow-level
+    # concurrency also excludes build/validation of this same tag.
+    concurrency:
+      group: desktop_publish
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
+      # App/config stays at the tested tag. Release tooling comes from the
+      # reviewed workflow revision so metadata fixes do not require rebuilding.
+      - name: Checkout reviewed release tooling
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          path: release_tools
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check tag and app configuration
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: node release_tools/scripts/validate_release.mjs "$RELEASE_TAG"
+      - name: Resolve existing draft ID
+        id: draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: node release_tools/scripts/resolve_draft.mjs
+      - name: Verify and publish stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_ID: ${{ steps.draft.outputs.release_id }}
+          RELEASE_WORKFLOW: release.yml
+          LOCAL_QA_PASSED: ${{ inputs.local_qa_passed }}
+          PUBLISH_RELEASE: 'true'
+        run: |
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern latest.json --dir "$RUNNER_TEMP/vx_publish"
+          node release_tools/scripts/finalize_release.mjs "$RUNNER_TEMP/vx_publish/latest.json"
