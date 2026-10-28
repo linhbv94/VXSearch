@@ -23,4 +23,8 @@ Giới hạn: Windows/Intel nativeGUI/updater, USB/sleep/TCC/mixedmonitorvậtl�
 
 ## Windows fixture portability — retry trước public
 
-Run40683342634:4shell+2coreunit+10integration đạt;2integration fail do tênASCIIquote bị Windowscấm và queryUnixseparator. Sửa fixture theoOS, giữ engine nguyên, giữ đầy đủ assertion literal/count/pathwatcher và không tăngtimeout. Mac18tests rerun đạt. Candidate79dea98 chưa public và chưa có asset; CI đãcancel, giữ refqa_failed_1_0_0_79dea98 để audit, thay candidate v1.0.0 chưapháthành bằng commitfix. Không sửa tag/bản đã public. Coordinatorcũ bịgatecancel dừng trướcpublish.
+Run40683342634:4shell+2coreunit+10integration đạt;2integration fail do tênASCIIquote bị Windowscấm và queryUnixseparator. Sửa fixture theoOS, giữ engine nguyên, giữ đầy đủ assertion literal/count/pathwatcher và không tăngtimeout. Mac18tests rerun đạt. Candidate79dea98 chưa public; MacSilicon kịp upload3partialassets trong lúc cancel. Gate0assets đã chặn thay draft; thay vì xóa, giữ cả draft/assets và source tại refqa_failed_1_0_0_79dea98 để audit, rồi thay candidate v1.0.0 chưapháthành bằng commitfix. Không sửa tag/bản đã public. Coordinatorcũ bịgatecancel dừng trướcpublish.
+
+## Performance QA bổ sung theo user
+
+[Report](release_1_0_0_performance.md): core release10k/50k/100k index0,80/4,70/10,32s, corepeakRSS33–40MB. NativeUI50k:50rows/trang; timeline50ms xác nhận Settings mở được trong RECONCILING. HostRSS103MB chưagồmWebKit; queryrộng ở100k20–64ms, nên khôngđạt/khôngclaim toànapp<80MB hoặc mọiquery<10ms. Không sửa engine trong lượtđo, không làm benchmarkdebug rồi claimrelease;500k/Windows/Intelperformancechưađo. Gatecoordinator yêu cầu hoàn tấtphần này trướcpublish.

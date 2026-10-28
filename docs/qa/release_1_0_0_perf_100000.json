@@ -1,0 +1,92 @@
+{
+  "architecture": "aarch64",
+  "db_size_bytes": 98205520,
+  "empty_root_filtered_ms": 22.623583999999997,
+  "fixture_directories": 50,
+  "fixture_files": 100001,
+  "fixture_setup_ms": 8301.314541,
+  "indexed_entries": 100051,
+  "initial_index_ms": 10319.220874999999,
+  "limitations": "Synthetic local fixture; search timing includes count and first 50 results. No UI/IPC/RAM/500k or other OS claim.",
+  "os": "macos",
+  "profile": "release",
+  "search_samples": [
+    {
+      "query": "",
+      "samples_ms": [
+        22.669833,
+        19.594542,
+        21.157208,
+        22.379459,
+        23.911834
+      ],
+      "total_matched": 100051
+    },
+    {
+      "query": "a",
+      "samples_ms": [
+        49.068083,
+        50.711290999999996,
+        48.710625,
+        48.848084,
+        49.62275
+      ],
+      "total_matched": 100051
+    },
+    {
+      "query": "rs",
+      "samples_ms": [
+        64.29775000000001,
+        53.820792,
+        52.386334,
+        60.150416,
+        51.980417
+      ],
+      "total_matched": 100051
+    },
+    {
+      "query": "file_005",
+      "samples_ms": [
+        18.868917,
+        10.226709,
+        9.860125,
+        10.156208,
+        9.674916
+      ],
+      "total_matched": 1000
+    },
+    {
+      "query": "bao cao",
+      "samples_ms": [
+        0.125125,
+        0.08662500000000001,
+        0.081708,
+        0.08562499999999999,
+        0.07825
+      ],
+      "total_matched": 1
+    },
+    {
+      "query": ".pdf",
+      "samples_ms": [
+        0.041832999999999995,
+        0.027791,
+        0.025042,
+        0.024,
+        0.023334
+      ],
+      "total_matched": 1
+    },
+    {
+      "query": "group_025",
+      "samples_ms": [
+        11.370417000000002,
+        10.274791,
+        10.41275,
+        10.077167,
+        10.227084
+      ],
+      "total_matched": 2001
+    }
+  ]
+}

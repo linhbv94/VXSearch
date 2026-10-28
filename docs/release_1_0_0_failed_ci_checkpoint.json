@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "conclusion": "cancelled",
+  "head_sha": "79dea98ed758e6970397809290cc463a8e6a0432",
+  "url": "https://github.com/linhbv94/VXSearch/actions/runs/40683342634",
+  "jobs": [
+    {
+      "name": "prepare",
+      "status": "completed",
+      "conclusion": "success",
+      "active": []
+    },
+    {
+      "name": "build (xcode-27, aarch64-apple-darwin, app,dmg, macos_silicon)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "active": []
+    },
+    {
+      "name": "build (xcode-27, x86_64-apple-darwin, app,dmg, macos_intel)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "active": []
+    },
+    {
+      "name": "build (windows-2022, x86_64-pc-windows-msvc, nsis, windows_x64)",
+      "status": "completed",
+      "conclusion": "failure",
+      "active": []
+    },
+    {
+      "name": "validate",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "active": []
+    }
+  ],
+  "repo": "linhbv94/VXSearch",
+  "run_id": 40683342634,
+  "observed_at_utc": "2026-10-28T12:03:04.200620+00:00"
+}

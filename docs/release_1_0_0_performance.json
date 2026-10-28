@@ -1,0 +1,401 @@
+{
+  "date": "2026-10-28",
+  "profile": "optimized Rust release core",
+  "samples_per_query": 5,
+  "scenarios": [
+    {
+      "architecture": "aarch64",
+      "db_size_bytes": 12723960,
+      "empty_root_filtered_ms": 1.384042,
+      "fixture_directories": 50,
+      "fixture_files": 10001,
+      "fixture_setup_ms": 695.088584,
+      "indexed_entries": 10051,
+      "initial_index_ms": 796.542417,
+      "limitations": "Synthetic local fixture; search timing includes count and first 50 results. No UI/IPC/RAM/500k or other OS claim.",
+      "os": "macos",
+      "profile": "release",
+      "search_samples": [
+        {
+          "query": "",
+          "samples_ms": [
+            2.5909169999999997,
+            1.408792,
+            1.3675,
+            1.465042,
+            1.353334
+          ],
+          "total_matched": 10051
+        },
+        {
+          "query": "a",
+          "samples_ms": [
+            2.7243749999999998,
+            2.738416,
+            2.668084,
+            2.785542,
+            2.7274170000000004
+          ],
+          "total_matched": 10051
+        },
+        {
+          "query": "rs",
+          "samples_ms": [
+            3.157791,
+            3.143833,
+            3.173,
+            3.272875,
+            3.1334169999999997
+          ],
+          "total_matched": 10051
+        },
+        {
+          "query": "file_005",
+          "samples_ms": [
+            2.825542,
+            2.524875,
+            2.4746249999999996,
+            2.456042,
+            2.5528750000000002
+          ],
+          "total_matched": 1000
+        },
+        {
+          "query": "bao cao",
+          "samples_ms": [
+            0.125333,
+            0.08112499999999999,
+            0.073458,
+            0.07037500000000001,
+            0.069125
+          ],
+          "total_matched": 1
+        },
+        {
+          "query": ".pdf",
+          "samples_ms": [
+            0.041458999999999996,
+            0.028125,
+            0.024708,
+            0.023458,
+            0.023625
+          ],
+          "total_matched": 1
+        },
+        {
+          "query": "group_025",
+          "samples_ms": [
+            1.296292,
+            1.170875,
+            1.1675,
+            1.189625,
+            1.221583
+          ],
+          "total_matched": 201
+        }
+      ],
+      "core_peak_rss_bytes": 33177600
+    },
+    {
+      "architecture": "aarch64",
+      "db_size_bytes": 52437080,
+      "empty_root_filtered_ms": 18.084333,
+      "fixture_directories": 50,
+      "fixture_files": 50001,
+      "fixture_setup_ms": 3875.418667,
+      "indexed_entries": 50051,
+      "initial_index_ms": 4697.5554170000005,
+      "limitations": "Synthetic local fixture; search timing includes count and first 50 results. No UI/IPC/RAM/500k or other OS claim.",
+      "os": "macos",
+      "profile": "release",
+      "search_samples": [
+        {
+          "query": "",
+          "samples_ms": [
+            12.044083,
+            10.099416999999999,
+            9.717208999999999,
+            10.791333,
+            11.194875
+          ],
+          "total_matched": 50051
+        },
+        {
+          "query": "a",
+          "samples_ms": [
+            22.984667,
+            23.402375,
+            34.916542,
+            23.4065,
+            22.764792
+          ],
+          "total_matched": 50051
+        },
+        {
+          "query": "rs",
+          "samples_ms": [
+            25.875916999999998,
+            25.153833,
+            28.339792,
+            25.3925,
+            26.502292
+          ],
+          "total_matched": 50051
+        },
+        {
+          "query": "file_005",
+          "samples_ms": [
+            6.5261249999999995,
+            5.4025419999999995,
+            5.2902499999999995,
+            5.72375,
+            6.0673330000000005
+          ],
+          "total_matched": 1000
+        },
+        {
+          "query": "bao cao",
+          "samples_ms": [
+            0.182875,
+            0.084709,
+            0.07341600000000001,
+            0.06933299999999999,
+            0.06870899999999999
+          ],
+          "total_matched": 1
+        },
+        {
+          "query": ".pdf",
+          "samples_ms": [
+            0.046042,
+            0.02675,
+            0.023875,
+            0.022584,
+            0.021792000000000002
+          ],
+          "total_matched": 1
+        },
+        {
+          "query": "group_025",
+          "samples_ms": [
+            5.789333,
+            5.521917,
+            5.4530840000000005,
+            5.276167,
+            5.289125
+          ],
+          "total_matched": 1001
+        }
+      ],
+      "core_peak_rss_bytes": 40075264
+    },
+    {
+      "architecture": "aarch64",
+      "db_size_bytes": 98205520,
+      "empty_root_filtered_ms": 22.623583999999997,
+      "fixture_directories": 50,
+      "fixture_files": 100001,
+      "fixture_setup_ms": 8301.314541,
+      "indexed_entries": 100051,
+      "initial_index_ms": 10319.220874999999,
+      "limitations": "Synthetic local fixture; search timing includes count and first 50 results. No UI/IPC/RAM/500k or other OS claim.",
+      "os": "macos",
+      "profile": "release",
+      "search_samples": [
+        {
+          "query": "",
+          "samples_ms": [
+            22.669833,
+            19.594542,
+            21.157208,
+            22.379459,
+            23.911834
+          ],
+          "total_matched": 100051
+        },
+        {
+          "query": "a",
+          "samples_ms": [
+            49.068083,
+            50.711290999999996,
+            48.710625,
+            48.848084,
+            49.62275
+          ],
+          "total_matched": 100051
+        },
+        {
+          "query": "rs",
+          "samples_ms": [
+            64.29775000000001,
+            53.820792,
+            52.386334,
+            60.150416,
+            51.980417
+          ],
+          "total_matched": 100051
+        },
+        {
+          "query": "file_005",
+          "samples_ms": [
+            18.868917,
+            10.226709,
+            9.860125,
+            10.156208,
+            9.674916
+          ],
+          "total_matched": 1000
+        },
+        {
+          "query": "bao cao",
+          "samples_ms": [
+            0.125125,
+            0.08662500000000001,
+            0.081708,
+            0.08562499999999999,
+            0.07825
+          ],
+          "total_matched": 1
+        },
+        {
+          "query": ".pdf",
+          "samples_ms": [
+            0.041832999999999995,
+            0.027791,
+            0.025042,
+            0.024,
+            0.023334
+          ],
+          "total_matched": 1
+        },
+        {
+          "query": "group_025",
+          "samples_ms": [
+            11.370417000000002,
+            10.274791,
+            10.41275,
+            10.077167,
+            10.227084
+          ],
+          "total_matched": 2001
+        }
+      ],
+      "core_peak_rss_bytes": 39387136
+    }
+  ],
+  "native_host_sample": {
+    "host_processes": [
+      {
+        "pid": 51179,
+        "ppid": 1,
+        "rss_bytes": 103038976
+      }
+    ],
+    "roots": [
+      [
+        2,
+        "/private/tmp/vxsearch_release_20261028/source_fixture",
+        "WATCHING_ACTIVE",
+        3
+      ],
+      [
+        3,
+        "/private/tmp/vxsearch_release_20261028/performance_source",
+        "WATCHING_ACTIVE",
+        50050
+      ]
+    ],
+    "scope": "One RSS sample of native host, excludes WKWebView XPC and is not whole-app peak."
+  },
+  "limits": [
+    "Not500k proof",
+    "Core RSS is not whole app memory; native host alone about103MB, WebKit not included",
+    "Broad/short queries exceed10ms at50k/100k; no universal10ms claim",
+    "UI smoke not frame-time or keyboard-to-paint benchmark",
+    "Windows/Intel performance not measured"
+  ],
+  "native_settings_smoke": {
+    "start_ms": 1793189965161,
+    "end_ms": 1793189965961,
+    "settings_visible": true,
+    "elapsed_including_CUA_wait_ms": 800,
+    "scan_states_during_interval": [
+      {
+        "timestamp_ms": 1793189965179.7178,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965234.8599,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965289.69,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965344.469,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965397.758,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965451.2288,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965504.114,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965557.9277,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965611.1008,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965662.004,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965717.13,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965771.647,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965824.584,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965879.426,
+        "status": "RECONCILING",
+        "entries": 50050
+      },
+      {
+        "timestamp_ms": 1793189965933.6692,
+        "status": "RECONCILING",
+        "entries": 50050
+      }
+    ],
+    "simultaneous_reconcile_verified": true
+  }
+}

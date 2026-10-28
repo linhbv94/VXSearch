@@ -1,0 +1,24 @@
+{
+  "host_processes": [
+    {
+      "pid": 51179,
+      "ppid": 1,
+      "rss_bytes": 103038976
+    }
+  ],
+  "roots": [
+    [
+      2,
+      "/private/tmp/vxsearch_release_20261028/source_fixture",
+      "WATCHING_ACTIVE",
+      3
+    ],
+    [
+      3,
+      "/private/tmp/vxsearch_release_20261028/performance_source",
+      "WATCHING_ACTIVE",
+      50050
+    ]
+  ],
+  "scope": "One RSS sample of native host, excludes WKWebView XPC and is not whole-app peak."
+}
