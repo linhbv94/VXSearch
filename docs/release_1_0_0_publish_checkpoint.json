@@ -1,0 +1,17 @@
+{
+  "status": "completed",
+  "conclusion": "success",
+  "head_sha": "644c744479bdcb1ba67965a4903dd0b97a132b5f",
+  "url": "https://github.com/linhbv94/VXSearch/actions/runs/40688519923",
+  "jobs": [
+    {
+      "name": "publish",
+      "status": "completed",
+      "conclusion": "success",
+      "active": []
+    }
+  ],
+  "repo": "linhbv94/VXSearch",
+  "run_id": 40688519923,
+  "observed_at_utc": "2026-10-28T12:32:10.485184+00:00"
+}

@@ -1,5 +1,7 @@
 # VXSearch1.0.0 — Final QA và release
 
+**Hoàn tất:** [Public1.0.0](https://github.com/linhbv94/VXSearch/releases/tag/v1.0.0), CI3target và updater E2E MacSilicon đạt. Windows/IntelGUI chưa kiểm.
+
 Ngày2026-10-28. User giao finalQA/release1.0.0, nhấn mạnh updater ổn định. Phạm vi engine Rust chung Mac/Win,3target thật. Không dùng dummy, không đọc nội dung tệp nguồn để index, không sửa/xóa nguồn. Private updater key riêng do user cho phép tạo/upload chỉ đúngrepo.
 
 ## QA độc lập
@@ -28,3 +30,15 @@ Run40683342634:4shell+2coreunit+10integration đạt;2integration fail do tênAS
 ## Performance QA bổ sung theo user
 
 [Report](release_1_0_0_performance.md): core release10k/50k/100k index0,80/4,70/10,32s, corepeakRSS33–40MB. NativeUI50k:50rows/trang; timeline50ms xác nhận Settings mở được trong RECONCILING. HostRSS103MB chưagồmWebKit; queryrộng ở100k20–64ms, nên khôngđạt/khôngclaim toànapp<80MB hoặc mọiquery<10ms. Không sửa engine trong lượtđo, không làm benchmarkdebug rồi claimrelease;500k/Windows/Intelperformancechưađo. Gatecoordinator yêu cầu hoàn tấtphần này trướcpublish.
+
+## Kết quả phát hành cuối
+
+- PR1 merged. Tag1.0.0 cuối tại644c744479bdcb1ba67965a4903dd0b97a132b5f. Build40685030065 và publish40688519923 success; layout6assets, manifeststable và mọiasset publicHTTP200 khôngtoken.
+- Mỗi gói updater và toàn bộalias qua xác minh Minisign thật, mộtbyte sửa bịtừchối. HaiMac đúngarch/SDK27/ID/version/icon/codesignstrict; haiDMG checksumvalid và hostbyteexacttar. WindowsNSISx64 cóversion/icon7payloads vàCommonControls6manifestđúng.
+- Native updater **QA0.9.9→public1.0.0** tựcheckstartup thấybảnmới (khôngbấmcheck), useractionCậpnhật→download/install→automaticrelaunch PID52376→52413, UI1.0.0/current vàmanualcheckcurrent. Binary sauupdatebyteexactCI. BaselineQAkhôngphảireleasepubliccũ; khôngclaim1.0.0→bảnpublickếtiếpđãtest.
+- 50.053records giữ nguyênID/root/path/name/type/size/mtime/flags/searchtext (hashfullrecords),2root/cấuhình khôngđổi. SQLiteintegrityok; FTS5integritycheck trên bảncopyok. 50.003nguồnsynthetic byte/mtime/hashnguyênvẹn. Không thayApplications/khôngcấpquyềnhệthống.
+- [Updaterproof](release_1_0_0_updater_evidence.json), [fullreleaseevidence](release_1_0_0_evidence.json), [performance](release_1_0_0_performance.md). Windows/IntelGUI vàupdater E2E chưa kiểm; CPUidle/storm/500k/USB/sleep/mixedmonitor chưa benchmark. Không bỏqua hoặcđổi thànhPASS.
+
+## Dọn QA và việc còn lại
+
+Đã gỡ cả hai rootfixture bằngUI,0root/0entry, giữsettings vàquitappQA. UIThu gọnchỉ mục hoạtđộng nhưng saugỡ50k vẫn còn12,16MBFTSsegments; ghiP1tốiưuFTSoptimize trướcVACUUM cho đợtsau, chưa sửa production trong lượt này. Cleanup riêng lượtQA đã optimize+VACUUM trênDB trống/appđãthoát, cóbackup vàtrialcopy proof, còn61.440bytes; không thaysettings. Hai thưmụcsynthetic đãxóasau khi byte/mtimeproofđạt vàgỡassociation. Applicationsngười dùng khôngthay. Khóa updater riêng giữ localignored/Secrets; hướngdẫnbackup trongrunbook. LượtQA/publishđóng; taskUI macOShoãn củauser giữ nguyên.

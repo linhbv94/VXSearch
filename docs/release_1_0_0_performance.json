@@ -397,5 +397,10 @@
       }
     ],
     "simultaneous_reconcile_verified": true
+  },
+  "native_fixture_source_integrity": {
+    "files": 50000,
+    "byte_size_mtime_path_digest": "beff70e697523acbfee482ece3a1484e1033a3ec71d9143c497a7ea4e8c9d44d",
+    "unchanged_after_scans": true
   }
 }

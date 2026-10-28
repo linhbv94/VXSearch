@@ -23,3 +23,7 @@ User nên sao lưu nguyên private key và file public vào nơi bảo mật ngo
 ## Updater UX và recovery
 
 Main production tự check một lần khi mở app; popup/dev/browser không check. Có notice và Settings→Cập nhật. Có bản mới thì user chọn Cập nhật & khởi động lại; không tự cài gây gián đoạn. Check timeout15s, download300s, chống check/install trùng. Startup offline không popup; check thủ công có details/retry. Sai chữ ký không cài/restart. Relaunch lỗi giữ trạng thái installed để chỉ retryrestart, không tải lần nữa. Đóng main về tray không hủy store; lần mở process mới check lại. Không hứa E2E chỉ từ build hay unit tests.
+
+## Baseline public hiện tại
+
+1.0.0 đã public ngày2026-10-28, tag644c744, build40685030065/publish40688519923. UpdaternativeQA0.9.9→public1.0.0 trênMacSilicon đạt, bảo toàn50.053records/2roots/settings/source. Bảnlocal0.1.0 chưa cóupdater cần cài1.0.0 thủcôngmộtlần. Windows/IntelGUI/updater chưa test. Candidate lỗi đượcgiữ tạiqa_failed_1_0_0_79dea98 dạngdraftkhôngpublish; tuyệtđối khôngchọn draftđócho người dùng. Không đổi tagpublic từ đây.

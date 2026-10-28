@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "state": "ci_pending",
+  "state": "public_verified",
   "repo": "linhbv94/VXSearch",
   "platforms": [
     "windows_x64",
@@ -51,5 +51,192 @@
     "Broad queries20–64ms at100k; not universal10ms",
     "Native host103MB excludingWebKit; whole app80MB target not met",
     "500k/Windows/Intel performance not measured"
-  ]
+  ],
+  "signatures": [
+    {
+      "platform": "windows-x86_64",
+      "name": "vxsearch_1.0.0_windows_x64_setup.exe",
+      "signature": true,
+      "tamper_rejected": true
+    },
+    {
+      "platform": "windows-x86_64-nsis",
+      "name": "vxsearch_1.0.0_windows_x64_setup.exe",
+      "signature": true,
+      "tamper_rejected": true
+    },
+    {
+      "platform": "darwin-aarch64",
+      "name": "vxsearch_1.0.0_macos_silicon.app.tar.gz",
+      "signature": true,
+      "tamper_rejected": true
+    },
+    {
+      "platform": "darwin-aarch64-app",
+      "name": "vxsearch_1.0.0_macos_silicon.app.tar.gz",
+      "signature": true,
+      "tamper_rejected": true
+    },
+    {
+      "platform": "darwin-x86_64",
+      "name": "vxsearch_1.0.0_macos_intel.app.tar.gz",
+      "signature": true,
+      "tamper_rejected": true
+    },
+    {
+      "platform": "darwin-x86_64-app",
+      "name": "vxsearch_1.0.0_macos_intel.app.tar.gz",
+      "signature": true,
+      "tamper_rejected": true
+    }
+  ],
+  "packages": [
+    {
+      "platform": "macos_silicon",
+      "version": "1.0.0",
+      "identifier": "com.vxsearch.desktop",
+      "architecture": "0x100000c",
+      "sdk": "27.0",
+      "icns_sha256": "24ded4418fd9a041d5fa5efb17f0c958d4fdaf8e2c8147d02d5b1091a1e2ccb6",
+      "icon_matches": true,
+      "strict_codesign": true,
+      "host_sha256": "54776f6056ccae7f74210bc93aea8ee5aedd5100a6cc7686d0db46f3cf467d2d"
+    },
+    {
+      "platform": "macos_intel",
+      "version": "1.0.0",
+      "identifier": "com.vxsearch.desktop",
+      "architecture": "0x1000007",
+      "sdk": "27.0",
+      "icns_sha256": "24ded4418fd9a041d5fa5efb17f0c958d4fdaf8e2c8147d02d5b1091a1e2ccb6",
+      "icon_matches": true,
+      "strict_codesign": true,
+      "host_sha256": "81985721b75175ebf539f55139c1eef1acf84e87edc5b487e40c14a5854add12"
+    },
+    {
+      "platform": "windows_x64",
+      "executable": "vxsearch.exe",
+      "pe_machine": "AMD64",
+      "version_resource_contains": "1.0.0",
+      "icon_payloads": 7,
+      "icon_matches": true,
+      "ico_sha256": "41cc04037afc3d9b46cc14e0a43483fd872e5e57f0baddf5edab79b36afea381"
+    }
+  ],
+  "dmgs": [
+    {
+      "platform": "macos_silicon",
+      "checksum": "VALID",
+      "dmg_icns_matches": true,
+      "identifier": "com.vxsearch.desktop",
+      "version": "1.0.0",
+      "strict_codesign": true,
+      "host_match_verified_updater": true
+    },
+    {
+      "platform": "macos_intel",
+      "checksum": "VALID",
+      "dmg_icns_matches": true,
+      "identifier": "com.vxsearch.desktop",
+      "version": "1.0.0",
+      "strict_codesign": true,
+      "host_match_verified_updater": true
+    }
+  ],
+  "publish_run_id": 40688519923,
+  "release_url": "https://github.com/linhbv94/VXSearch/releases/tag/v1.0.0",
+  "public_manifest_exact": true,
+  "public_assets": [
+    {
+      "name": "latest.json",
+      "http": 200,
+      "size": 4941,
+      "sha256": "5026db7fe0731ce2c6f12d05cf384f2933de48d6048f784f7f2777ec67739dde"
+    },
+    {
+      "name": "vxsearch_1.0.0_macos_intel.app.tar.gz",
+      "http": 200,
+      "size": 7844162,
+      "sha256": "e6ee90d07166182f0f263ea3ed033681d9340e2d1d24a3878a8ccaed2155ee66"
+    },
+    {
+      "name": "vxsearch_1.0.0_macos_intel.dmg",
+      "http": 200,
+      "size": 8371292,
+      "sha256": "022fa5092bb6796d947a554e00998e26609488175662f67f96578e473686955a"
+    },
+    {
+      "name": "vxsearch_1.0.0_macos_silicon.app.tar.gz",
+      "http": 200,
+      "size": 7429720,
+      "sha256": "de637fe3250f189dc7ab7793e18ab3c8e006dadf2afd1c727d025852f9f06423"
+    },
+    {
+      "name": "vxsearch_1.0.0_macos_silicon.dmg",
+      "http": 200,
+      "size": 7898537,
+      "sha256": "b960cdb9198313bdb6e41f77ee300426a2f5b1943d3778c979647f3bd413dc2c"
+    },
+    {
+      "name": "vxsearch_1.0.0_windows_x64_setup.exe",
+      "http": 200,
+      "size": 4593721,
+      "sha256": "83720b69e7e3cb7d06f8efff92166d48e1e440bcc46aecf28c3bd1999032c2e1"
+    }
+  ],
+  "updater_e2e": {
+    "state": "e2e_passed",
+    "baseline_type": "Local QA0.9.9 with production updater; not a public release",
+    "platform": "macos_silicon",
+    "before_version": "0.9.9",
+    "before_host_sha256": "94f5e4dc938c81376e8a87544289340725b3cf3cc6175fdb48c1dc4fc5e3028f",
+    "scope": "Owned fixture app; Applications unchanged",
+    "index_before_entries": 50053,
+    "permission_granted_during_test": false,
+    "limits": [
+      "Does not prove Windows/Intel native updater",
+      "No TCC retention claim for ad-hoc light-read app"
+    ],
+    "before_pid": 52376,
+    "after_pid": 52413,
+    "after_version": "1.0.0",
+    "after_host_sha256": "54776f6056ccae7f74210bc93aea8ee5aedd5100a6cc7686d0db46f3cf467d2d",
+    "byte_exact_ci": true,
+    "strict_codesign": true,
+    "auto_startup_check_available": true,
+    "install_trigger": "Native startup notice Update & restart; no manual check needed",
+    "after_ui_version": "1.0.0",
+    "startup_current_after_restart": true,
+    "index_after_entries": 50053,
+    "index_content_sha256": "6ec404c4ae8966e4ab61e9dd07a96e30ed275cfcc06b4cbcf60acd7e82874f9e",
+    "full_index_records_ids_paths_metadata_unchanged": true,
+    "roots_preserved": true,
+    "settings_preserved": true,
+    "sqlite_integrity": "ok",
+    "fts5_integrity_check_on_copy": "ok",
+    "fixture_source_bytes_mtime_unchanged": true,
+    "performance_source_50000_unchanged": true,
+    "performance_source_digest": "beff70e697523acbfee482ece3a1484e1033a3ec71d9143c497a7ea4e8c9d44d",
+    "manual_check_after_update": "current",
+    "cleanup": {
+      "roots": 0,
+      "entries": 0,
+      "sqlite_integrity": "ok",
+      "vacuum_ui": "success",
+      "after_quit_db_size_bytes": 61440,
+      "owned_qa_app_stopped": true,
+      "settings_unchanged": true,
+      "user_applications_unchanged": true,
+      "source_files_not_deleted_by_app": true,
+      "manual_fixture_index_compaction": "FTS5 optimize then VACUUM on stopped empty app DB, proven first on copy; no runtime code changed",
+      "ui_vacuum_limit": "UI VACUUM alone left12.16MB FTS segments after50k fixture removal; future optimization, not a secure-erasure claim"
+    }
+  },
+  "qa_complete": true,
+  "platform_runtime_evidence": {
+    "macos_silicon": "packaged UI and real updater0.9.9QA→1.0.0 public passed",
+    "windows_x64": "CI4shell+14core, package/PE/icon/manifest and signature passed; GUI/updater runtime untested",
+    "macos_intel": "crossbuild architecture/SDK27/signature/DMG passed; nativeGUI/updater untested"
+  },
+  "turn_closed": true
 }
