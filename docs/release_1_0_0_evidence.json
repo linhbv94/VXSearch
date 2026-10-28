@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "state": "local_qa_passed",
+  "state": "ci_pending",
   "repo": "linhbv94/VXSearch",
   "platforms": [
     "windows_x64",
@@ -33,5 +33,16 @@
     "sqlite_integrity": "ok",
     "fixture_sources_byte_mtime_exact": true,
     "updater_pre_public": "Expected no stable release JSON; real error/details, no fake current"
+  },
+  "pr": 1,
+  "tag": "v1.0.0",
+  "sha": "79dea98ed758e6970397809290cc463a8e6a0432",
+  "build_run_id": 40683342634,
+  "pre_public_retry": {
+    "failed_sha": "79dea98ed758e6970397809290cc463a8e6a0432",
+    "failed_run_id": 40683342634,
+    "reason": "Windows fixtures used forbidden ASCII quote filename and Unix separator. Production engine unchanged. Corrected portable fixtures retain literal/rename assertions.",
+    "status": "Cancelled before packaging/publication; no assets.",
+    "retained_ref": "qa_failed_1_0_0_79dea98"
   }
 }

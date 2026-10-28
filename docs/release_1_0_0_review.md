@@ -20,3 +20,7 @@ Baseline QA0.9.9 riêng: productionupdater/codeđợtnày, chỉ versionthấp h
 Repo public,standardwindows-2022/xcode-27, không cache/workflowartifacts. SDK27exact,Macadhoc cho appđọcmetadata; khôngthêmFDA/Accessibility/trust. CIserializeuploads, layout6assets; signatureverified trướcpublish, exacttagSHA và versioncao hơn stable. Notes enduser, backupkey trong desktop_release.md. Public và E2Echưa được claim trước bằngchứng.
 
 Giới hạn: Windows/Intel nativeGUI/updater, USB/sleep/TCC/mixedmonitorvậtlý chưa kiểm. Không cam kết hiệu năng500k hoặc FDAretentiontừ appnhẹadhoc.
+
+## Windows fixture portability — retry trước public
+
+Run40683342634:4shell+2coreunit+10integration đạt;2integration fail do tênASCIIquote bị Windowscấm và queryUnixseparator. Sửa fixture theoOS, giữ engine nguyên, giữ đầy đủ assertion literal/count/pathwatcher và không tăngtimeout. Mac18tests rerun đạt. Candidate79dea98 chưa public và chưa có asset; CI đãcancel, giữ refqa_failed_1_0_0_79dea98 để audit, thay candidate v1.0.0 chưapháthành bằng commitfix. Không sửa tag/bản đã public. Coordinatorcũ bịgatecancel dừng trướcpublish.

@@ -46,11 +46,14 @@ fn setup() -> (TempDir, Engine, std::path::PathBuf) {
 #[test]
 fn unicode_literal_short_tokens_extension_and_pagination() {
     let (_temp, e, root) = setup();
+    // ASCII quote is an invalid Windows filename; retain quote-query coverage
+    // with a valid fullwidth quote there and the ASCII fixture on Unix.
+    let quoted_name = if cfg!(windows) { "a＂b.md" } else { "a\"b.md" };
     for name in [
         "Báo cáo tài chính.pdf",
         "financial_report.pdf",
         "100%_draft.txt",
-        "a\"b.md",
+        quoted_name,
         "øq.txt",
         "đề_án.docx",
     ] {
@@ -62,7 +65,11 @@ fn unicode_literal_short_tokens_extension_and_pagination() {
     assert_eq!(search(&e, "BAO").total_matched, 1);
     assert_eq!(search(&e, "report").total_matched, 1);
     assert_eq!(search(&e, "%_").total_matched, 1);
-    assert_eq!(search(&e, "a\"b").total_matched, 1);
+    assert_eq!(search(&e, quoted_name).total_matched, 1);
+    assert_eq!(
+        search(&e, "a\"b").total_matched,
+        if cfg!(windows) { 0 } else { 1 }
+    );
     assert_eq!(search(&e, "øq").total_matched, 1);
     assert_eq!(search(&e, "de_an").total_matched, 1);
     assert_eq!(search(&e, "baocao").total_matched, 0);
@@ -99,10 +106,18 @@ fn live_watcher_create_modify_rename_parent_delete_and_atomic_save() {
     eventually(|| search(&e, "fresh.txt").total_matched == 1);
     fs::create_dir(root.join("old")).unwrap();
     fs::write(root.join("old/nested.md"), b"nested").unwrap();
-    eventually(|| search(&e, "old/nested").total_matched == 1);
+    let old_query = Path::new("old")
+        .join("nested")
+        .to_string_lossy()
+        .into_owned();
+    let new_query = Path::new("new")
+        .join("nested")
+        .to_string_lossy()
+        .into_owned();
+    eventually(|| search(&e, &old_query).total_matched == 1);
     fs::rename(root.join("old"), root.join("new")).unwrap();
     eventually(|| {
-        search(&e, "new/nested").total_matched == 1 && search(&e, "old/nested").total_matched == 0
+        search(&e, &new_query).total_matched == 1 && search(&e, &old_query).total_matched == 0
     });
     fs::write(root.join("temporary.txt"), b"replacement content").unwrap();
     fs::rename(root.join("temporary.txt"), root.join("fresh.txt")).unwrap();
