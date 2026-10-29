@@ -6,7 +6,7 @@ Tuân thủ AGENTS.md, tiếng Việt chuyên nghiệp, UTF-8, snake_case và tu
 ## 1. Bối cảnh dự án
 Dự án **VXSearch** — Tiện ích tìm kiếm tệp cục bộ siêu nhẹ theo các thư mục do người dùng chủ động chọn (Explicit User-Curated Scope), hoạt động trên cả Windows 10/11 (x64) và macOS 14.0+ (Apple Silicon & Intel — baseline SDK 27.0).
 - Tài liệu phạm vi gốc (Single Source of Scope): `vxsearch/VXSearch_Scope_v1.0.md`.
-- Quy chuẩn thiết kế giao diện: `.agents/desktop_ui_standards.md` và `_summary/master_theme.md`.
+- Quy chuẩn thiết kế giao diện: `_summary/standard_docs/desktop_ui_standards.md` và `_summary/standard_docs/master_theme.md`.
 
 Bộ tài liệu đặc tả (Docs / Spec Suite) gồm 7 tài liệu tại thư mục `vxsearch/docs/spec/`:
 - `vxsearch/docs/spec/00_system_overview.md`: Tổng quan kiến trúc, tôn chỉ sản phẩm (không cạnh tranh Everything quét toàn ổ đĩa; tuyệt đối read-only với tệp người dùng, zero-cloud), ma trận độ khó kỹ thuật (5 hạng mục), ngăn xếp công nghệ Tauri 2 + Rust + walkdir + notify + SQLite (B-Tree + FTS5 trigram) + React + Vite + Tailwind, cây thư mục dự án và lộ trình Vertical Slice 4 giai đoạn.

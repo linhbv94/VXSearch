@@ -18,9 +18,11 @@ import {
   toggleMaximizeAppWindow,
 } from "../services/tauri_ipc";
 import { formatNumber, getFolderBasename } from "../utils/formatters";
+import { type AppLanguage, translations } from "../i18n/translations";
 
 interface TitleBarProps {
   platform: string;
+  language?: AppLanguage;
   watchedRoots: WatchedRoot[];
   selectedRootId: number | null;
   closeToTray: boolean;
@@ -34,6 +36,7 @@ interface TitleBarProps {
 
 export const TitleBar: React.FC<TitleBarProps> = ({
   platform,
+  language = "vi",
   watchedRoots,
   selectedRootId,
   closeToTray,
@@ -44,6 +47,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onClearSearch,
   onFocusSearch,
 }) => {
+  const t = translations[language].titleBar;
   const isWindows = platform.toLowerCase().includes("win");
   const [folderDropdownOpen, setFolderDropdownOpen] = useState(false);
   const [winMenuOpen, setWinMenuOpen] = useState<"file" | "edit" | null>(null);
@@ -105,37 +109,42 @@ export const TitleBar: React.FC<TitleBarProps> = ({
     <header
       ref={barRef}
       className={`vx-titlebar ${isWindows ? "is-windows" : "is-macos"}`}
+      data-vx-titlebar-profile={isWindows ? "windows_32" : "standard_32"}
       data-tauri-drag-region
       style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
       onMouseDown={handleBarMouseDown}
     >
       <div className="vx-titlebar-left" data-tauri-drag-region>
-        {!isWindows ? (
+        <div
+          className="vx-app-badge"
+          data-tauri-drag-region
+          style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+        >
+          <Search
+            aria-hidden="true"
+            data-vx-titlebar-glyph
+            style={{
+              width: 16,
+              height: 16,
+              color: "var(--accent-bright)",
+              flexShrink: 0,
+            }}
+          />
+          <span className="vx-app-title" data-vx-titlebar-name>
+            VXSearch
+          </span>
+        </div>
+
+        {isWindows && (
           <div
-            className="vx-app-badge"
-            data-tauri-drag-region
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-          >
-            <Search
-              aria-hidden="true"
-              style={{
-                width: 16,
-                height: 16,
-                color: "var(--accent-bright)",
-                flexShrink: 0,
-              }}
-            />
-            <span className="vx-app-title">VXSearch</span>
-          </div>
-        ) : (
-          <div
-            className="vx-dropdown-wrapper no-drag"
+            className="vx-dropdown-wrapper no-drag" data-vx-windows-menu
             style={
               {
                 WebkitAppRegion: "no-drag",
                 display: "flex",
                 alignItems: "center",
                 gap: 2,
+                marginLeft: 4,
               } as React.CSSProperties
             }
           >
@@ -145,7 +154,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 className={`vx-chrome-btn ${winMenuOpen === "file" ? "is-active" : ""}`}
                 onClick={() => setWinMenuOpen(winMenuOpen === "file" ? null : "file")}
               >
-                Tệp
+                {t.fileMenu}
               </button>
               {winMenuOpen === "file" && (
                 <div className="vx-dropdown-menu glass-dropdown">
@@ -157,7 +166,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       onQuickAddFolder();
                     }}
                   >
-                    <span>Thêm thư mục theo dõi...</span>
+                    <span>{t.addFolderItem}</span>
                     <FolderPlus style={{ width: 14, height: 14 }} />
                   </button>
                   <button
@@ -168,7 +177,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       onOpenFolderManager();
                     }}
                   >
-                    <span>Quản lý thư mục theo dõi</span>
+                    <span>{t.manageFoldersItem}</span>
                     <FolderOpen style={{ width: 14, height: 14 }} />
                   </button>
                   <button
@@ -179,7 +188,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       onOpenSettings();
                     }}
                   >
-                    <span>Cài đặt</span>
+                    <span>{t.settingsItem}</span>
                     <Settings style={{ width: 14, height: 14 }} />
                   </button>
                   <button
@@ -190,7 +199,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       void closeOrHideAppWindow(closeToTray);
                     }}
                   >
-                    <span>{closeToTray ? "Ẩn xuống khay hệ thống" : "Thoát ứng dụng"}</span>
+                    <span>{closeToTray ? t.hideToTray : t.quitApp}</span>
                     <X style={{ width: 14, height: 14 }} />
                   </button>
                 </div>
@@ -203,7 +212,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 className={`vx-chrome-btn ${winMenuOpen === "edit" ? "is-active" : ""}`}
                 onClick={() => setWinMenuOpen(winMenuOpen === "edit" ? null : "edit")}
               >
-                Chỉnh sửa
+                {t.editMenu}
               </button>
               {winMenuOpen === "edit" && (
                 <div className="vx-dropdown-menu glass-dropdown">
@@ -215,7 +224,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       onFocusSearch();
                     }}
                   >
-                    <span>Chọn ô tìm kiếm</span>
+                    <span>{t.focusSearchItem}</span>
                     <span className="vx-kbd-tag">Ctrl+F</span>
                   </button>
                   <button
@@ -226,7 +235,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       onClearSearch();
                     }}
                   >
-                    <span>Xóa bộ lọc tìm kiếm</span>
+                    <span>{t.clearFiltersItem}</span>
                     <span className="vx-kbd-tag">Esc</span>
                   </button>
                 </div>
@@ -242,12 +251,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 type="button"
                 className={`vx-chrome-btn ${selectedRootId !== null ? "is-active" : ""}`}
                 onClick={onOpenFolderManager}
-                title="Quản lý thư mục theo dõi"
+                title={t.foldersBtnTitle}
               >
                 <FolderOpen
                   style={{ width: 14, height: 14, color: "var(--accent-bright)" }}
                 />
-                <span>Thư mục</span>
+                <span>{t.foldersBtn}</span>
                 <span className="vx-badge-pill">{watchedRoots.length}</span>
               </button>
               {folderDropdownOpen && (
@@ -256,12 +265,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                   onMouseEnter={openFolderHover}
                   onMouseLeave={closeFolderHoverDelayed}
                 >
-                  <div className="vx-dropdown-header">Thư mục theo dõi</div>
+                  <div className="vx-dropdown-header">{t.watchedFoldersHeader}</div>
                   {displayedRoots.length === 0 ? (
                     <div
                       style={{ padding: "8px", fontSize: 11, color: "var(--text-muted)" }}
                     >
-                      Chưa có thư mục nào được theo dõi.
+                      {t.noWatchedFolders}
                     </div>
                   ) : (
                     <>
@@ -275,7 +284,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                           setFolderDropdownOpen(false);
                         }}
                       >
-                        <span>Tất cả thư mục ({watchedRoots.length})</span>
+                        <span>{t.allFolders(watchedRoots.length)}</span>
                         {selectedRootId === null && (
                           <Check style={{ width: 13, height: 13 }} />
                         )}
@@ -306,7 +315,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                             className="font-mono"
                             style={{ fontSize: 10, color: "var(--text-muted)" }}
                           >
-                            {formatNumber(r.total_files)}
+                            {formatNumber(r.total_files, language)}
                           </span>
                         </button>
                       ))}
@@ -327,7 +336,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       onQuickAddFolder();
                     }}
                   >
-                    <span>+ Thêm thư mục mới...</span>
+                    <span>{t.addNewFolderItem}</span>
                     <FolderPlus
                       style={{ width: 13, height: 13, color: "var(--accent-bright)" }}
                     />
@@ -340,7 +349,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                       onOpenFolderManager();
                     }}
                   >
-                    <span>Mở quản lý thư mục...</span>
+                    <span>{t.openFolderManagerItem}</span>
                     <RefreshCw style={{ width: 13, height: 13 }} />
                   </button>
                 </div>
@@ -364,12 +373,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
               type="button"
               className={`vx-chrome-btn ${selectedRootId !== null ? "is-active" : ""}`}
               onClick={onOpenFolderManager}
-              title="Quản lý thư mục theo dõi"
+              title={t.foldersBtnTitle}
             >
               <FolderOpen
                 style={{ width: 14, height: 14, color: "var(--accent-bright)" }}
               />
-              <span>Thư mục</span>
+              <span>{t.foldersBtn}</span>
               <span className="vx-badge-pill">{watchedRoots.length}</span>
             </button>
             {folderDropdownOpen && (
@@ -378,12 +387,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 onMouseEnter={openFolderHover}
                 onMouseLeave={closeFolderHoverDelayed}
               >
-                <div className="vx-dropdown-header">Thư mục theo dõi</div>
+                <div className="vx-dropdown-header">{t.watchedFoldersHeader}</div>
                 {displayedRoots.length === 0 ? (
                   <div
                     style={{ padding: "8px", fontSize: 11, color: "var(--text-muted)" }}
                   >
-                    Chưa có thư mục nào được theo dõi.
+                    {t.noWatchedFolders}
                   </div>
                 ) : (
                   <>
@@ -397,7 +406,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                         setFolderDropdownOpen(false);
                       }}
                     >
-                      <span>Tất cả thư mục ({watchedRoots.length})</span>
+                      <span>{t.allFolders(watchedRoots.length)}</span>
                       {selectedRootId === null && (
                         <Check style={{ width: 13, height: 13 }} />
                       )}
@@ -428,7 +437,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                           className="font-mono"
                           style={{ fontSize: 10, color: "var(--text-muted)" }}
                         >
-                          {formatNumber(r.total_files)}
+                          {formatNumber(r.total_files, language)}
                         </span>
                       </button>
                     ))}
@@ -449,7 +458,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                     onQuickAddFolder();
                   }}
                 >
-                  <span>+ Thêm thư mục mới...</span>
+                  <span>{t.addNewFolderItem}</span>
                   <FolderPlus
                     style={{ width: 13, height: 13, color: "var(--accent-bright)" }}
                   />
@@ -462,7 +471,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                     onOpenFolderManager();
                   }}
                 >
-                  <span>Quản lý tất cả thư mục...</span>
+                  <span>{t.manageAllFoldersItem}</span>
                   <FolderOpen style={{ width: 13, height: 13 }} />
                 </button>
               </div>
@@ -472,13 +481,13 @@ export const TitleBar: React.FC<TitleBarProps> = ({
 
         <button
           type="button"
-          className="vx-chrome-btn"
+          className="vx-settings-gear-btn"
+          data-vx-settings-button
           onClick={onOpenSettings}
-          title="Cài đặt VXSearch"
-          aria-label="Cài đặt VXSearch"
+          title={t.settingsBtnTitle}
+          aria-label={t.settingsBtnTitle}
         >
-          <Settings style={{ width: 14, height: 14 }} />
-          <span>Cài đặt</span>
+          <Settings style={{ width: 16, height: 16, flexShrink: 0 }} />
         </button>
 
         {isWindows && (
@@ -487,8 +496,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
               type="button"
               className="vx-win-btn"
               onClick={() => void minimizeAppWindow()}
-              title="Thu nhỏ"
-              aria-label="Thu nhỏ"
+              title={t.minimize}
+              aria-label={t.minimize}
             >
               <Minus style={{ width: 14, height: 14 }} />
             </button>
@@ -496,8 +505,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
               type="button"
               className="vx-win-btn"
               onClick={() => void toggleMaximizeAppWindow()}
-              title="Phóng to / Khôi phục"
-              aria-label="Phóng to / Khôi phục"
+              title={t.maximize}
+              aria-label={t.maximize}
             >
               <Square style={{ width: 12, height: 12 }} />
             </button>
@@ -505,8 +514,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
               type="button"
               className="vx-win-btn is-close"
               onClick={() => void closeOrHideAppWindow(closeToTray)}
-              title={closeToTray ? "Đóng (Ẩn vào khay)" : "Đóng"}
-              aria-label="Đóng"
+              title={closeToTray ? t.closeToTrayTitle : t.closeTitle}
+              aria-label={t.closeTitle}
             >
               <X style={{ width: 15, height: 15 }} />
             </button>

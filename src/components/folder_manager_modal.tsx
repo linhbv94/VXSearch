@@ -32,9 +32,11 @@ import {
   formatTimestamp,
   parseAppError,
 } from "../utils/formatters";
+import { type AppLanguage, translations } from "../i18n/translations";
 
 interface FolderManagerModalProps {
   isOpen: boolean;
+  language?: AppLanguage;
   watchedRoots: WatchedRoot[];
   scanProgress: ScanProgressPayload | null;
   onClose: () => void;
@@ -55,7 +57,10 @@ interface PendingRelinkState {
   newPath: string;
 }
 
-function getStatusDisplay(status: string): {
+function getStatusDisplay(
+  status: string,
+  t: (typeof translations)["vi"]["folderModal"] | (typeof translations)["en"]["folderModal"]
+): {
   label: string;
   color: string;
   bgColor: string;
@@ -63,7 +68,7 @@ function getStatusDisplay(status: string): {
   const upper = status.toUpperCase();
   if (upper.includes("SCANNING") || upper.includes("RECONCIL")) {
     return {
-      label: "Đang lập chỉ mục",
+      label: t.statusScanning,
       color: "var(--accent-bright)",
       bgColor: "var(--accent-surface)",
     };
@@ -75,13 +80,13 @@ function getStatusDisplay(status: string): {
     upper.includes("MISSING")
   ) {
     return {
-      label: "Thư mục hiện không khả dụng",
+      label: t.statusUnavailable,
       color: "var(--semantic-amber)",
       bgColor: "var(--semantic-amber-bg)",
     };
   }
   return {
-    label: "Đang theo dõi",
+    label: t.statusWatching,
     color: "var(--semantic-emerald)",
     bgColor: "var(--semantic-emerald-bg)",
   };
@@ -89,6 +94,7 @@ function getStatusDisplay(status: string): {
 
 export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
   isOpen,
+  language = "vi",
   watchedRoots,
   scanProgress,
   onClose,
@@ -96,6 +102,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
   onNotify,
   onPickerBusyChange,
 }) => {
+  const t = translations[language].folderModal;
   const [isBusy, setIsBusy] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
   const [manualPath, setManualPath] = useState("");
@@ -217,7 +224,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
       setManualPath("");
       setShowManualInput(false);
       await onRefreshAll();
-      onNotify("success", `Đã thêm thư mục theo dõi: ${trimmed}`);
+      onNotify("success", t.toasts.added(trimmed));
     } catch (err) {
       const appErr = parseAppError(err);
       const rawCovered = appErr.details?.covered_root_ids;
@@ -229,9 +236,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
         setPendingMerge({
           parentPath: trimmed,
           coveredRootIds: coveredIds,
-          message:
-            appErr.message ||
-            "Thư mục mới bao trùm các thư mục con đang được theo dõi. Bạn có muốn gộp chung vào thư mục cha không?",
+          message: appErr.message || t.mergeDefaultMessage,
         });
       } else {
         onNotify("warning", appErr.message);
@@ -270,10 +275,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
       setManualPath("");
       setShowManualInput(false);
       await onRefreshAll();
-      onNotify(
-        "success",
-        `Đã gộp các thư mục con vào thư mục cha: ${pendingMerge.parentPath}`
-      );
+      onNotify("success", t.toasts.merged(pendingMerge.parentPath));
     } catch (err) {
       const appErr = parseAppError(err);
       onNotify("error", appErr.message);
@@ -288,7 +290,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
     try {
       await ipcRefreshWatchedRoot(rootId);
       await onRefreshAll();
-      onNotify("info", "Đã gửi yêu cầu quét đối chiếu lại thư mục.");
+      onNotify("info", t.toasts.refreshed);
     } catch (err) {
       const appErr = parseAppError(err);
       onNotify("error", appErr.message);
@@ -325,7 +327,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
       await ipcRelinkWatchedRoot(pendingRelink.rootId, pendingRelink.newPath);
       setPendingRelink(null);
       await onRefreshAll();
-      onNotify("success", `Đã định vị lại thư mục sang: ${pendingRelink.newPath}`);
+      onNotify("success", t.toasts.relinked(pendingRelink.newPath));
     } catch (err) {
       const appErr = parseAppError(err);
       onNotify("error", appErr.message);
@@ -343,12 +345,9 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
       await onRefreshAll();
       const countText =
         typeof res.removed_files_count === "number"
-          ? ` (${formatNumber(res.removed_files_count)} bản ghi chỉ mục)`
+          ? t.toasts.removedCountSuffix(formatNumber(res.removed_files_count, language))
           : "";
-      onNotify(
-        "success",
-        `Đã gỡ thư mục khỏi chỉ mục VXSearch${countText}. Tệp gốc trên ổ cứng được giữ nguyên.`
-      );
+      onNotify("success", t.toasts.removed(countText));
     } catch (err) {
       const appErr = parseAppError(err);
       onNotify("error", appErr.message);
@@ -374,7 +373,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
         className="vx-modal-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label="Quản lý Thư mục Theo dõi"
+        aria-label={t.title}
       >
         <div
           className="vx-modal-header"
@@ -384,7 +383,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
         >
           <div className="vx-modal-title" data-tauri-drag-region>
             <FolderOpen style={{ width: 16, height: 16, color: "var(--accent-bright)" }} />
-            <span>Quản lý Thư mục Theo dõi</span>
+            <span>{t.title}</span>
           </div>
           <button
             type="button"
@@ -392,7 +391,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
             style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
             disabled={isBusy || isPicking}
             onClick={onClose}
-            aria-label="Đóng"
+            aria-label={t.closeAria}
           >
             <X style={{ width: 16, height: 16 }} />
           </button>
@@ -409,7 +408,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
             }}
           >
             <p style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.45 }}>
-              VXSearch chỉ lập chỉ mục tên và đường dẫn trong các thư mục dưới đây; không đọc nội dung hay sửa/xóa tệp gốc trên đĩa.
+              {t.subtitle}
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
               <button
@@ -418,7 +417,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                 onClick={() => setShowManualInput((v) => !v)}
                 disabled={isBusy || isPicking}
               >
-                Nhập đường dẫn
+                {t.manualPathBtn}
               </button>
               <button
                 type="button"
@@ -431,7 +430,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                 ) : (
                   <FolderPlus style={{ width: 14, height: 14 }} />
                 )}
-                <span>Thêm thư mục...</span>
+                <span>{t.addFolderBtn}</span>
               </button>
             </div>
           </div>
@@ -452,14 +451,14 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   color: "var(--text-secondary)",
                 }}
               >
-                Thêm đường dẫn thư mục trực tiếp:
+                {t.manualInputLabel}
               </label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   type="text"
                   value={manualPath}
                   onChange={(e) => setManualPath(e.target.value)}
-                  placeholder="/Users/ten_ban/Projects hoặc D:\Workspace"
+                  placeholder={t.manualInputPlaceholder}
                   className="vx-search-input"
                   style={{
                     height: 30,
@@ -475,7 +474,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   className="vx-btn vx-btn-primary"
                   disabled={isBusy || !manualPath.trim()}
                 >
-                  Thêm
+                  {t.addBtn}
                 </button>
                 <button
                   type="button"
@@ -486,7 +485,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                     setManualPath("");
                   }}
                 >
-                  Hủy
+                  {t.cancelBtn}
                 </button>
               </div>
             </form>
@@ -512,7 +511,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                 }}
               >
                 <GitMerge style={{ width: 15, height: 15 }} />
-                <span>Xác nhận gộp thư mục con vào thư mục cha</span>
+                <span>{t.mergeTitle}</span>
               </div>
               <p style={{ fontSize: 11, color: "var(--text-primary)", lineHeight: 1.5 }}>
                 {pendingMerge.message}
@@ -527,20 +526,18 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                 }}
               >
                 <div>
-                  <strong>Thư mục cha mới:</strong>{" "}
+                  <strong>{t.newParentLabel}</strong>{" "}
                   <span className="font-mono">{pendingMerge.parentPath}</span>
                 </div>
                 <div style={{ marginTop: 4 }}>
-                  <strong>
-                    Các thư mục sẽ được gộp:
-                  </strong>
+                  <strong>{t.coveredRootsLabel}</strong>
                 </div>
                 <ul style={{ marginLeft: 16, marginTop: 2 }}>
                   {pendingMerge.coveredRootIds.map((cid) => {
                     const matched = watchedRoots.find((r) => r.id === cid);
                     return (
                       <li key={cid} className="font-mono" style={{ fontSize: 10 }}>
-                        {matched ? matched.path : "Thư mục không còn trong danh sách theo dõi"}
+                        {matched ? matched.path : t.missingRootLabel}
                       </li>
                     );
                   })}
@@ -553,7 +550,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   onClick={() => setPendingMerge(null)}
                   disabled={isBusy}
                 >
-                  Hủy bỏ
+                  {t.cancelMergeBtn}
                 </button>
                 <button
                   type="button"
@@ -562,7 +559,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   disabled={isBusy}
                 >
                   <CheckCircle2 style={{ width: 14, height: 14 }} />
-                  <span>Đồng ý gộp chỉ mục</span>
+                  <span>{t.confirmMergeBtn}</span>
                 </button>
               </div>
             </div>
@@ -588,17 +585,17 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                 }}
               >
                 <Link2 style={{ width: 15, height: 15 }} />
-                <span>Xác nhận định vị lại đường dẫn (Root #{pendingRelink.rootId})</span>
+                <span>{t.relinkTitle(pendingRelink.rootId)}</span>
               </div>
               <div style={{ fontSize: 11, color: "var(--text-primary)", lineHeight: 1.5 }}>
                 <div>
-                  Đường dẫn cũ: <code className="font-mono">{pendingRelink.oldPath}</code>
+                  {t.oldPathLabel} <code className="font-mono">{pendingRelink.oldPath}</code>
                 </div>
                 <div>
-                  Đường dẫn mới: <code className="font-mono">{pendingRelink.newPath}</code>
+                  {t.newPathLabel} <code className="font-mono">{pendingRelink.newPath}</code>
                 </div>
                 <div style={{ marginTop: 4, color: "var(--text-secondary)" }}>
-                  Hệ thống sẽ cập nhật đường dẫn gốc và lập lại chỉ mục cho thư mục này.
+                  {t.relinkDesc}
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
@@ -608,7 +605,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   onClick={() => setPendingRelink(null)}
                   disabled={isBusy}
                 >
-                  Hủy
+                  {t.cancelBtn}
                 </button>
                 <button
                   type="button"
@@ -616,7 +613,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   onClick={() => void handleConfirmRelink()}
                   disabled={isBusy}
                 >
-                  Xác nhận định vị lại
+                  {t.confirmRelinkBtn}
                 </button>
               </div>
             </div>
@@ -634,16 +631,18 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
             >
               <FolderOpen style={{ width: 28, height: 28, color: "var(--text-muted)" }} />
               <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                Chưa có thư mục nào được theo dõi
+                {t.emptyTitle}
               </div>
               <p style={{ fontSize: 11, color: "var(--text-muted)", maxWidth: 380 }}>
-                Nhấn nút <strong>Thêm thư mục...</strong> để chọn các thư mục dự án, tài liệu hoặc ổ đĩa cần tìm kiếm nhanh.
+                {t.emptyDescPrefix}
+                <strong>{t.addFolderBtn}</strong>
+                {t.emptyDescSuffix}
               </p>
             </div>
           ) : (
             <div className="vx-root-list">
               {watchedRoots.map((root) => {
-                const statusInfo = getStatusDisplay(root.status);
+                const statusInfo = getStatusDisplay(root.status, t);
                 const isRootScanning =
                   scanProgress?.root_id === root.id ||
                   root.status.toUpperCase().includes("SCANNING");
@@ -673,8 +672,8 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                         <button
                           type="button"
                           className="vx-icon-btn vx-tooltip-btn"
-                          data-tooltip="Quét đối chiếu lại (Refresh)"
-                          aria-label="Quét đối chiếu lại"
+                          data-tooltip={t.refreshTooltip}
+                          aria-label={t.refreshAria}
                           disabled={isBusy || isPicking}
                           onClick={() => void handleRefreshRoot(root.id)}
                         >
@@ -684,8 +683,8 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                         <button
                           type="button"
                           className="vx-icon-btn vx-tooltip-btn"
-                          data-tooltip="Định vị lại đường dẫn mới (Relink)"
-                          aria-label="Định vị lại đường dẫn"
+                          data-tooltip={t.relinkTooltip}
+                          aria-label={t.relinkAria}
                           disabled={isBusy || isPicking}
                           onClick={() => void handleInitiateRelink(root)}
                         >
@@ -695,8 +694,8 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                         <button
                           type="button"
                           className="vx-icon-btn vx-tooltip-btn"
-                          data-tooltip="Gỡ khỏi chỉ mục VXSearch (Không xóa tệp thật)"
-                          aria-label="Gỡ khỏi chỉ mục"
+                          data-tooltip={t.removeTooltip}
+                          aria-label={t.removeAria}
                           disabled={isBusy || isPicking}
                           onClick={() =>
                             setPendingRemoveId(isConfirmingRemove ? null : root.id)
@@ -743,12 +742,13 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                             color: "var(--text-secondary)",
                           }}
                         >
-                          <HardDrive style={{ width: 11, height: 11 }} />Ổ đĩa rời
+                          <HardDrive style={{ width: 11, height: 11 }} />
+                          {t.removableDrive}
                         </span>
                       )}
 
                       <span className="font-mono">
-                        {formatNumber(root.total_files)} tệp
+                        {t.filesCount(formatNumber(root.total_files, language))}
                       </span>
                       <span>•</span>
                       <span className="font-mono">
@@ -756,7 +756,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                       </span>
                       <span>•</span>
                       <span>
-                        Quét gần nhất:{" "}
+                        {t.lastScanPrefix}{" "}
                         <span className="font-mono">
                           {formatTimestamp(root.last_scan_at)}
                         </span>
@@ -782,10 +782,10 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                             whiteSpace: "nowrap",
                           }}
                         >
-                          Đang lập chỉ mục: {scanProgress.current_path}
+                          {t.indexingPathPrefix} {scanProgress.current_path}
                         </span>
                         <span className="font-mono" style={{ flexShrink: 0 }}>
-                          {formatNumber(scanProgress.scanned_count)} tệp
+                          {t.filesCount(formatNumber(scanProgress.scanned_count, language))}
                         </span>
                       </div>
                     )}
@@ -807,8 +807,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <AlertTriangle style={{ width: 13, height: 13, flexShrink: 0 }} />
                           <span>
-                            {root.error_message ||
-                              "Thư mục hiện không khả dụng. Chỉ mục cũ vẫn được bảo toàn."}
+                            {root.error_message || t.unavailableDefaultMsg}
                           </span>
                         </div>
                         <button
@@ -818,7 +817,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                           disabled={isBusy || isPicking}
                           onClick={() => void handleInitiateRelink(root)}
                         >
-                          Định vị lại
+                          {t.relinkActionBtn}
                         </button>
                       </div>
                     )}
@@ -838,10 +837,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                         }}
                       >
                         <span style={{ color: "var(--text-primary)" }}>
-                          Xác nhận gỡ chỉ mục thư mục này khỏi VXSearch?{" "}
-                          <strong style={{ color: "var(--semantic-emerald)" }}>
-                            (Không xóa tệp gốc trên đĩa)
-                          </strong>
+                          {t.confirmRemoveText}
                         </span>
                         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                           <button
@@ -851,7 +847,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                             disabled={isBusy}
                             onClick={() => setPendingRemoveId(null)}
                           >
-                            Hủy
+                            {t.cancelBtn}
                           </button>
                           <button
                             type="button"
@@ -860,7 +856,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                             disabled={isBusy}
                             onClick={() => void handleConfirmRemove(root.id)}
                           >
-                            Gỡ chỉ mục
+                            {t.confirmRemoveBtn}
                           </button>
                         </div>
                       </div>
@@ -874,15 +870,11 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
 
         <div className="vx-modal-footer">
           <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-            Tổng cộng:{" "}
-            <strong className="font-mono" style={{ color: "var(--text-primary)" }}>
-              {formatNumber(watchedRoots.length)}
-            </strong>{" "}
-            thư mục •{" "}
-            <strong className="font-mono" style={{ color: "var(--text-primary)" }}>
-              {formatNumber(totalFilesAllRoots)}
-            </strong>{" "}
-            tệp ({formatBytes(totalBytesAllRoots)})
+            {t.footerSummary(
+              watchedRoots.length,
+              formatNumber(totalFilesAllRoots, language),
+              formatBytes(totalBytesAllRoots)
+            )}
           </span>
 
           <button
@@ -891,7 +883,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
             disabled={isBusy || isPicking}
             onClick={onClose}
           >
-            Đóng
+            {t.closeBtn}
           </button>
         </div>
       </div>

@@ -32,4 +32,4 @@ Mục tiêu Windows x64 và macOS14+ (SDK27.0), kiến trúc Mac hiện tại đ
 
 - [Scope gốc](../../VXSearch_Scope_v1.0.md).
 - [Flow](02_feature_flow.md), [UI](03_ui_wireframe.md), [API](04_api_data.md), [QA](05_qa_acceptance.md).
-- [Desktop UI](../../../.agents/desktop_ui_standards.md), [theme](../../../_summary/master_theme.md), [SDK](../../../_summary/macos_build_baseline.md).
+- [Desktop UI](../../../_summary/standard_docs/desktop_ui_standards.md), [theme](../../../_summary/standard_docs/master_theme.md), [SDK](../../../_summary/standard_docs/macos_build_baseline.md).

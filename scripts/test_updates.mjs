@@ -19,7 +19,7 @@ test('StrictMode/startup subscribers issue one check and never auto-install', as
   controller.start();
   controller.start();
   await controller.checkForUpdates();
-  await tick();
+  for (let attempt = 0; attempt < 5 && controller.snapshot().status === 'checking'; attempt++) await tick();
   assert.equal(checks, 1);
   assert.equal(installs, 0);
   assert.equal(controller.snapshot().status, 'available');
@@ -136,7 +136,53 @@ test('a failed handle close cannot leave a stale installable update', async () =
  await c.checkForUpdates();await c.checkForUpdates();assert.equal(c.snapshot().status,'error');await c.installUpdate();assert.equal(installs,0);
  await c.checkForUpdates();assert.equal(c.snapshot().status,'available');
 });
-test('recovery failure still reports a retryable download error', async()=>{
+test('recovery failure preserves error and prevents unsafe retry', async()=>{
  const c=createUpdateController({enabled:true,check:async()=>({version:'2.0.0',close:async()=>{},downloadAndInstall:async()=>{throw new Error('network failed');}}),installFailed:async()=>{throw new Error('recovery failed');},relaunch:async()=>{assert.fail('no restart');}});
- await c.checkForUpdates();await c.installUpdate();assert.equal(c.snapshot().status,'error');assert.match(c.snapshot().error,/network failed/);await c.checkForUpdates();assert.equal(c.snapshot().status,'available');
+ await c.checkForUpdates();await c.installUpdate();assert.equal(c.snapshot().status,'error');assert.match(c.snapshot().error,/network failed/);await c.checkForUpdates();assert.equal(c.snapshot().status,'error');assert.equal(c.snapshot().errorCode,'recovery_failed');
+});
+
+
+test('dismissed version stays dismissed across rechecks but a new version notifies', async () => {
+  let version='2.0.0';
+  const c=createUpdateController({enabled:true,check:async()=>({version,close:async()=>{},downloadAndInstall:async()=>{}}),relaunch:async()=>{}});
+  await c.checkForUpdates();c.dismissUpdateNotice();await c.checkForUpdates();
+  assert.equal(c.snapshot().noticeVisible,false);assert.equal(c.snapshot().status,'available');
+  version='2.0.1';await c.checkForUpdates();assert.equal(c.snapshot().noticeVisible,true);
+});
+
+test('installed update cannot install again even when called directly', async () => {
+  let installs=0;
+  const c=createUpdateController({enabled:true,check:async()=>({version:'2.0.0',close:async()=>{},downloadAndInstall:async()=>{installs++;}}),relaunch:async()=>{}});
+  await c.checkForUpdates();await c.installUpdate();await c.installUpdate();assert.equal(installs,1);
+});
+
+test('cleanup failure is visible and recovery must succeed before a fresh check/install', async () => {
+  let recoverFails=true, installs=0, checks=0;
+  const c=createUpdateController({enabled:true,check:async()=>{checks++;return{version:'2.0.0',close:async()=>{},downloadAndInstall:async()=>{installs++;throw Error('signature invalid');}};},beforeInstall:async()=>{},installFailed:async()=>{if(recoverFails)throw Error('engine still locked');},relaunch:async()=>{assert.fail('never restart');}});
+  await c.checkForUpdates();await c.installUpdate();assert.equal(c.snapshot().errorCode,'recovery_failed');assert.match(c.snapshot().error,/signature invalid.*engine still locked/);
+  await c.installUpdate();assert.equal(installs,1);assert.equal(c.snapshot().status,'error');
+  await c.checkForUpdates();assert.equal(checks,1);assert.equal(c.snapshot().errorCode,'recovery_failed');
+  recoverFails=false;await c.checkForUpdates();assert.equal(checks,2);assert.equal(c.snapshot().status,'available');
+});
+
+test('stale handle close failure cannot leave an installable resource', async () => {
+  let installs=0;
+  const c=createUpdateController({enabled:true,check:async()=>({version:'2.0.0',close:async()=>{throw Error('close failed');},downloadAndInstall:async()=>{installs++;}}),relaunch:async()=>{}});
+  await c.checkForUpdates();await c.checkForUpdates();await c.installUpdate();assert.equal(installs,0);assert.equal(c.snapshot().status,'error');
+});
+
+test('same/older stable versions are not offered; prerelease and invalid versions are rejected', async () => {
+  for(const version of ['1.2.0','1.1.9','1.3.0-beta.1','garbage']){
+    let closed=0;
+    const c=createUpdateController({enabled:true,currentVersion:'1.2.0',check:async()=>({version,close:async()=>{closed++;},downloadAndInstall:async()=>{assert.fail('invalid offer');}}),relaunch:async()=>{}});
+    await c.checkForUpdates();assert.equal(c.snapshot().status,version.includes('beta')||version==='garbage'?'error':'current');assert.equal(closed,1);
+  }
+});
+
+test('unknown content length stays indeterminate; dismissal cannot hide an active install', async () => {
+  const c=createUpdateController({enabled:true,check:async()=>({version:'2.0.0',close:async()=>{},downloadAndInstall:async event=>{
+    event({event:'Started',data:{}});event({event:'Progress',data:{chunkLength:40}});
+    assert.equal(c.snapshot().progress,undefined);c.dismissUpdateNotice();assert.equal(c.snapshot().noticeVisible,true);
+  }}),relaunch:async()=>{}});
+  await c.checkForUpdates();await c.installUpdate();assert.equal(c.snapshot().status,'installed');
 });

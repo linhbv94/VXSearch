@@ -35,6 +35,8 @@ import type {
 } from "./types/ipc_types";
 import { parseAppError } from "./utils/formatters";
 
+import {type AppLanguage, type ExtendedThemeMode, normalizeLanguage, normalizeExtendedTheme} from './i18n/translations';
+import {ipcSetAppLanguage} from './services/tauri_ipc';
 const PAGE_SIZE = 50;
 
 function isSearchNavigationTarget(
@@ -91,6 +93,21 @@ export const App: React.FC = () => {
     return defaults;
   });
 
+  const [language, setLanguage] = useState<AppLanguage>(() => normalizeLanguage(localStorage.getItem('vxsearch_lang')));
+  const [themeMode, setThemeMode] = useState<ExtendedThemeMode>(() => normalizeExtendedTheme(localStorage.getItem('vxsearch_theme')));
+  useEffect(() => {
+    localStorage.setItem('vxsearch_lang', language);
+    document.documentElement.lang = language;
+    void ipcSetAppLanguage(language).catch(console.error);
+  }, [language]);
+  useEffect(() => {
+    const sync = (e: StorageEvent) => {
+      if(e.key === 'vxsearch_lang') setLanguage(normalizeLanguage(e.newValue));
+      if(e.key === 'vxsearch_theme') setThemeMode(normalizeExtendedTheme(e.newValue));
+    };
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, []);
   const [query, setQuery] = useState("");
   const [handoffRevision, setHandoffRevision] = useState(0);
   const [filterType, setFilterType] = useState<FileFilterType>("all");
@@ -144,15 +161,16 @@ export const App: React.FC = () => {
 
   // Theme application (dark / light / system)
   useEffect(() => {
-    localStorage.setItem("vxsearch_theme", settings.theme);
+    localStorage.setItem("vxsearch_theme", themeMode);
     const rootEl = document.documentElement;
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const applyTheme = () => {
       const effectiveDark =
-        settings.theme === "dark" ||
-        (settings.theme === "system" && mediaQuery.matches);
-      rootEl.classList.remove("dark", "light");
+        themeMode === "dark" || themeMode === "oled" ||
+        (themeMode === "system" && mediaQuery.matches);
+      rootEl.classList.remove("dark", "light", "oled");
+      if(themeMode === "oled") rootEl.classList.add("oled");
       rootEl.classList.add(effectiveDark ? "dark" : "light");
     };
 
@@ -161,7 +179,7 @@ export const App: React.FC = () => {
     return () => {
       mediaQuery.removeEventListener("change", applyTheme);
     };
-  }, [settings.theme]);
+  }, [themeMode]);
 
   const executeSearch = useCallback(
     async (
@@ -494,7 +512,7 @@ export const App: React.FC = () => {
   const handleOpenItem = useCallback(
     async (item: SearchResultItem) => {
       if (item.is_offline) {
-        addToast("warning", "Thư mục hiện không khả dụng — không thể mở tệp.");
+        addToast("warning", language === "vi" ? "Thư mục hiện không khả dụng — không thể mở tệp." : "Folder unavailable — cannot open file.");
         return;
       }
       try {
@@ -505,13 +523,13 @@ export const App: React.FC = () => {
         void refreshStatusAndRoots(true);
       }
     },
-    [addToast, refreshStatusAndRoots]
+    [addToast, refreshStatusAndRoots, language]
   );
 
   const handleRevealItem = useCallback(
     async (item: SearchResultItem) => {
       if (item.is_offline) {
-        addToast("warning", "Thư mục hiện không khả dụng — không thể định vị tệp.");
+        addToast("warning", language === "vi" ? "Thư mục hiện không khả dụng — không thể định vị tệp." : "Folder unavailable — cannot reveal file.");
         return;
       }
       try {
@@ -522,20 +540,20 @@ export const App: React.FC = () => {
         void refreshStatusAndRoots(true);
       }
     },
-    [addToast, refreshStatusAndRoots]
+    [addToast, refreshStatusAndRoots, language]
   );
 
   const handleCopyPath = useCallback(
     async (item: SearchResultItem) => {
       try {
         await ipcCopyFilePath(item.path);
-        addToast("success", `Đã chép đường dẫn: ${item.name}`);
+        addToast("success", language === "vi" ? `Đã chép đường dẫn: ${item.name}` : `Copied path: ${item.name}`);
       } catch (err) {
         const appErr = parseAppError(err);
         addToast("error", appErr.message);
       }
     },
-    [addToast]
+    [addToast, language]
   );
 
   // Context-aware global keyboard navigation
@@ -543,6 +561,9 @@ export const App: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing || e.keyCode === 229) {
         return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+        e.preventDefault(); setSettingsModalOpen(v => !v); return;
       }
       if (folderModalOpen || settingsModalOpen) {
         return;
@@ -648,6 +669,7 @@ export const App: React.FC = () => {
   return (
     <div className="vx-app-shell">
       <TitleBar
+        language={language}
         platform={systemStatus.platform}
         watchedRoots={watchedRoots}
         selectedRootId={rootId}
@@ -664,6 +686,7 @@ export const App: React.FC = () => {
       />
 
       <SearchSection
+        language={language}
         inputRef={searchInputRef}
         query={query}
         filterType={filterType}
@@ -681,6 +704,7 @@ export const App: React.FC = () => {
       />
 
       <ResultList
+        language={language}
         items={results}
         totalMatched={totalMatched}
         pageOffset={pageOffset}
@@ -707,12 +731,14 @@ export const App: React.FC = () => {
       />
 
       <StatusFooter
+        language={language}
         systemStatus={systemStatus}
         isBrowserPreview={isBrowserPreview}
         isScanning={systemStatus.is_any_scanning || scanProgress !== null}
       />
 
       <FolderManagerModal
+        language={language}
         isOpen={folderModalOpen}
         watchedRoots={watchedRoots}
         scanProgress={scanProgress}
@@ -727,6 +753,10 @@ export const App: React.FC = () => {
       />
 
       <SettingsModal
+        language={language}
+        themeMode={themeMode}
+        onChangeLanguage={setLanguage}
+        onChangeThemeMode={setThemeMode}
         isOpen={settingsModalOpen}
         settings={settings}
         systemStatus={systemStatus}
@@ -738,7 +768,7 @@ export const App: React.FC = () => {
         onNotify={addToast}
       />
 
-      <AppUpdates notice />
+      <AppUpdates notice language={language} />
       <ToastContainer toasts={toasts} />
     </div>
   );

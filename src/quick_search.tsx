@@ -2,6 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { parseAppError } from "./utils/formatters";
+import {
+  type AppLanguage,
+  type ExtendedThemeMode,
+  normalizeExtendedTheme,
+  normalizeLanguage,
+  translations,
+} from "./i18n/translations";
 
 type ThemeMode = "light" | "dark" | "system";
 
@@ -20,10 +27,9 @@ interface QuickSearchSubmitResult {
 const SYSTEM_FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
-function resolveEffectiveTheme(mode: ThemeMode): "light" | "dark" {
-  if (mode === "light" || mode === "dark") {
-    return mode;
-  }
+function resolveEffectiveTheme(mode: ExtendedThemeMode): "light" | "dark" {
+  if (mode === "light") return "light";
+  if (mode === "dark" || mode === "oled") return "dark";
   if (
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
@@ -34,20 +40,30 @@ function resolveEffectiveTheme(mode: ThemeMode): "light" | "dark" {
   return "dark";
 }
 
-function applyDocumentTheme(mode: ThemeMode): void {
+function applyDocumentTheme(mode: ExtendedThemeMode): void {
   if (typeof document === "undefined") return;
   const effective = resolveEffectiveTheme(mode);
   const root = document.documentElement;
-  root.classList.remove("light", "dark");
+  root.classList.remove("light", "dark", "oled");
   root.classList.add(effective);
+  if (mode === "oled") {
+    root.classList.add("oled");
+  }
   root.style.colorScheme = effective;
 }
 
 export const QuickSearch: React.FC = () => {
+  const [language, setLanguage] = useState<AppLanguage>(() =>
+    normalizeLanguage(localStorage.getItem("vxsearch_lang"))
+  );
   const [query, setQuery] = useState("");
-  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+  const [themeMode, setThemeMode] = useState<ExtendedThemeMode>(() =>
+    normalizeExtendedTheme(localStorage.getItem("vxsearch_theme"))
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const t = translations[language].quickSearch;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isComposingRef = useRef(false);
@@ -64,11 +80,19 @@ export const QuickSearch: React.FC = () => {
   }, []);
 
   const loadThemeSettings = useCallback(async () => {
+    const storedLang = normalizeLanguage(localStorage.getItem("vxsearch_lang"));
+    setLanguage(storedLang);
+    const storedTheme = localStorage.getItem("vxsearch_theme");
+    if (storedTheme === "oled") {
+      setThemeMode("oled");
+      applyDocumentTheme("oled");
+      return;
+    }
     if (!isTauri()) return;
     try {
       const settings = await invoke<AppSettings>("get_settings");
       if (!mountedRef.current || !settings) return;
-      const mode: ThemeMode =
+      const mode: ExtendedThemeMode =
         settings.theme === "light" ||
         settings.theme === "dark" ||
         settings.theme === "system"
@@ -88,6 +112,20 @@ export const QuickSearch: React.FC = () => {
       mountedRef.current = false;
     };
   }, [themeMode]);
+
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "vxsearch_lang") {
+        setLanguage(normalizeLanguage(e.newValue));
+      } else if (e.key === "vxsearch_theme") {
+        const nextTheme = normalizeExtendedTheme(e.newValue);
+        setThemeMode(nextTheme);
+        applyDocumentTheme(nextTheme);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -165,9 +203,9 @@ export const QuickSearch: React.FC = () => {
     } catch (err: unknown) {
       if (!mountedRef.current) return;
       const msg = parseAppError(err).message;
-      setErrorMessage(msg || "Không thể ẩn cửa sổ tìm kiếm nhanh.");
+      setErrorMessage(msg || t.hideError);
     }
-  }, []);
+  }, [t.hideError]);
 
   const submitSearch = useCallback(async () => {
     if (isComposingRef.current || submittingRef.current) return;
@@ -189,20 +227,20 @@ export const QuickSearch: React.FC = () => {
             ? result.error
             : typeof result.message === "string"
               ? result.message
-              : "Không thể gửi từ khóa tìm kiếm.";
+              : t.submitError;
         setErrorMessage(msg);
       }
     } catch (err: unknown) {
       if (!mountedRef.current) return;
       const msg = parseAppError(err).message;
-      setErrorMessage(msg || "Không thể thực hiện tìm kiếm nhanh.");
+      setErrorMessage(msg || t.execError);
     } finally {
       submittingRef.current = false;
       if (mountedRef.current) {
         setIsSubmitting(false);
       }
     }
-  }, [query]);
+  }, [query, t.execError, t.submitError]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -245,13 +283,15 @@ export const QuickSearch: React.FC = () => {
   return (
     <form
       role="search"
-      aria-label="Tìm kiếm nhanh VXSearch"
+      aria-label={t.formAria}
       title={errorMessage ?? undefined}
       onSubmit={handleFormSubmit}
       onKeyDown={handleKeyDown}
       style={{
         width: "100%",
         maxWidth: 380,
+        borderRadius: 12,
+        border: "1px solid var(--border-subtle)",
         height: 64,
         minHeight: 64,
         maxHeight: 64,
@@ -284,15 +324,15 @@ export const QuickSearch: React.FC = () => {
           border: 0,
         }}
       >
-        Từ khóa tìm kiếm nhanh
+        {t.inputLabel}
       </label>
       <input
         ref={inputRef}
         id="vx-quick-search-input"
         type="text"
         value={query}
-        placeholder="Nhập từ khóa tìm tệp..."
-        aria-label="Từ khóa tìm kiếm nhanh"
+        placeholder={t.placeholder}
+        aria-label={t.inputLabel}
         aria-invalid={Boolean(errorMessage)}
         aria-describedby="vx-quick-search-status"
         title={errorMessage ?? undefined}
@@ -332,8 +372,8 @@ export const QuickSearch: React.FC = () => {
       <button
         type="submit"
         disabled={isButtonDisabled}
-        aria-label="Tìm"
-        title={errorMessage ?? "Tìm kiếm"}
+        aria-label={t.submitBtn}
+        title={errorMessage ?? t.submitTitle}
         style={{
           height: 36,
           padding: "0 12px",
@@ -352,7 +392,7 @@ export const QuickSearch: React.FC = () => {
           whiteSpace: "nowrap",
         }}
       >
-        Tìm
+        {t.submitBtn}
       </button>
       <span
         id="vx-quick-search-status"

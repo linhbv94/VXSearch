@@ -1,8 +1,8 @@
 # 03. Giao diện VXSearch
 
-Version: 1.1.0 — Ngày cập nhật: 2026-10-28
+Version: 1.3.0 — Ngày cập nhật: 2026-10-29
 
-Nguồn chuẩn [hợp đồng07](07_implementation_contract.md), [desktop UI](../../../.agents/desktop_ui_standards.md), [master theme](../../../_summary/master_theme.md). Layout desktop720×540 mặc định, min640×440; không giả lập mobile.
+Nguồn chuẩn [hợp đồng07](07_implementation_contract.md), [desktop UI](../../../_summary/standard_docs/desktop_ui_standards.md), [master theme](../../../_summary/standard_docs/master_theme.md). Layout desktop720×540 mặc định, min640×440; không giả lập mobile.
 
 ## Bố cục
 
@@ -48,3 +48,46 @@ User đã chốt Dock/menu bar popup/glyph titlebar ngày2026-10-28; chưa sửa
 ## Popup tìm nhanh menu bar
 
 Cửa sổ `quick_search`380×64logicalpx, một hàng input+Tìm, không chrome/logo/results/filter. Root CSS không áp dụng min640×440 của main. Focus/select khi mở, theme theo settings, Escape/blur đóng. Không submit blank hoặc Enter khiIME composing; chặn submit trùng, lỗi IPC đọc được và retry. Main nhận nguyên keyword qua mailbox, reset filter/root/page để tìm toàn phạm vi đã chọn.
+
+## Bổ sung corner popover — 2026-10-29
+
+Quick Search từ icon menubar: cửa sổ trong suốt, html/body/root không tô nền vuông; form theme/viền1px/radius12px/clip nội dung. Giữ380×64, focus, submit và click ngoài ẩn. Theo [quy chuẩn floating surface](../../../_summary/standard_docs/desktop_ui_standards.md#corner-cửa-sổ-và-menubar-popover). Thay đổi source chưa đồng nghĩa bản release đã được cập nhật hoặc QA native đạt.
+
+
+## Đồng bộ UI suite — Codex tiếp quản ngày2026-10-29
+
+Theo [Settings](../../../_summary/standard_docs/settings_standards.md), [song ngữ](../../../_summary/standard_docs/bilingual_standards.md) và [updater](../../../_summary/standard_docs/auto_update_standards.md). Mục này cập nhật các mô tả cũ trái ranh giới General; không thay engine hoặc tự đánh dấu Specs ready/QA/release.
+
+| Tab / surface | Key / owner | Capability, apply và persist |
+|---|---|---|
+| Chung | `vxsearch_theme` | system/dark/light/oled; radio2cột, apply ngay; backend mapping OLED→dark nhưng giữ extended mode ở frontend |
+| Chung | `vxsearch_lang` | vi/en, radio ngang, persist và storage sync; native app menu rebuild theo locale |
+| Tìm kiếm & cửa sổ | `close_to_tray`, `auto_select_input`, `debounce_ms` | Giữ capability/backend thật; không đặt trong General |
+| Phím tắt | `global_hotkey` | Giữ đăng ký OS và báo lỗi, không đổi khi Language đổi |
+| Updates | `app_updater.ts` | Cùng controller với notice góc dưới phải20px, CTA cài/restart trực tiếp |
+
+⌘, và native Settings mở cùng modal trong main window; khi tìm nhanh đang mở, phải show main trước khi emit open_panel. Menu Tìm tệp… dùng CmdF và focus tìm kiếm, không giả action Open File.
+
+Bằng chứng/checks và giới hạn: [báo cáo Codex](../../../_summary/agents_handoff/suite_ui_codex_20261029_result.md). ST/BI/AU/TB native acceptance chỉ đạt khi có evidence phù hợp; source/build không tự đạt runtime.
+
+
+## Feedback20261029 — Settings component dùng chung
+
+- Căn cứ: [feedback user](../../../_summary/feedback.md) và [Settings contract](../../../_summary/standard_docs/settings_standards.md). Title VXabc Settings không icon; commonvisual/copy lấy VXMedia.
+- Source dùng lại: [canonical React](../../../_summary/standard_codes/settings_ui/settings_ui.tsx), vendorlocal `src/components/shared/settings_ui.tsx` + CSS + SHAmanifest (Clean ở desktop/src); không runtimeimport sibling.
+- Windowapp dùng shell672×560, header/footer56/sidebar192/body24; maxheight theo viewport. General chỉ2sectionTheme→Language, chỉcapability thật. Updates/About/Support dùngcomponent; version/repo/description/icon/QR làmetadata riêng, tabnghiệpvụ vàconfig/updaterguards giữadapter hiệncó.
+- Nghiệmthu riêng: commoncopy/geometry vi-en, theme/localeapply+readback, radio/tabkeyboard/focustrap/Escape, body cuộn/footerkhôngche; native/Windows/packaged/E2E phải ghi evidence, build/hashPASSkhông tựđạt. About native thamchiếuSearch, khác AboutSettings.
+
+## Cập nhật Feedback 2026-10-29
+- Kích thước cửa sổ mặc định tăng lên 1100x720 (min-size 720x480, clamp theo workarea màn hình không vượt quá 95% width / 90% height).
+- Cột 'Dung lượng' trên bảng kết quả mở rộng lên 96px và bổ sung `white-space: nowrap` chống xuống dòng ở locale Tiếng Việt.
+- Titlebar Windows: Hiển thị SVG Search + tên app 'VXSearch' bên trái cạnh menu File/Edit; cụm window controls (min/max/close) bên phải sau nút Settings gear.
+
+
+
+### Đính chính titlebar 2026-10-30
+Tên app theo hợp đồng root: system font12/600/line16, smoothing auto như Media/Photos; không kế thừa body antialiased. Giữ tác vụ quản lý thư mục riêng của Search.
+
+
+### About native — đính chính 2026-10-30
+Theo hợp đồng menu/About root: PNG trong suốt512×512 riêng app (không Dock squircle/default32), layout AppKit theo Search. Credits: Bùi Việt Linh → mô tả vi/en → GitHub URL; footer © 2026 Bùi Việt Linh. All rights reserved. Giữ version thật, không lặp build version. Cần QA bundle/native mới; không coi cargo check là visual PASS.

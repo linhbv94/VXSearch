@@ -365,3 +365,7 @@ export function subscribeNativeEvents(handlers: NativeEventHandlers): () => void
     }
   };
 }
+
+export async function ipcSetAppLanguage(lang: 'vi' | 'en'): Promise<void> {
+  if (isTauriRuntime()) await invoke('set_app_language', {lang});
+}

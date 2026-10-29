@@ -16,6 +16,102 @@ use tauri::{Emitter, Manager, State};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
 
+use tauri::menu::{AboutMetadataBuilder, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+
+#[cfg(target_os = "macos")]
+fn rebuild_mac_app_menu(app: &tauri::AppHandle, lang: &str) {
+    let is_en = lang.eq_ignore_ascii_case("en");
+    let open_file_label = if is_en { "Find files…" } else { "Tìm tệp…" };
+    let open_folder_label = if is_en { "Manage folders…" } else { "Quản lý thư mục…" };
+    let settings_label = if is_en { "Settings…" } else { "Cài đặt…" };
+    let file_menu_label = if is_en { "File" } else { "Tệp" };
+    let edit_menu_label = if is_en { "Edit" } else { "Chỉnh sửa" };
+    let about_comments = if is_en {
+        "Fast local file search"
+    } else {
+        "Tìm tệp nhanh trên máy"
+    };
+    let about_credits = if is_en {
+        "Bùi Việt Linh\nFind local files quickly with indexed search.\nGitHub: https://github.com/linhbv94/VXSearch"
+    } else {
+        "Bùi Việt Linh\nTìm tệp nhanh trong các thư mục được theo dõi.\nGitHub: https://github.com/linhbv94/VXSearch"
+    };
+
+    let build_menu = || -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
+        let open_file = MenuItemBuilder::with_id("search_focus", open_file_label)
+            .accelerator("CmdOrCtrl+F")
+            .build(app)?;
+        let open_folder = MenuItemBuilder::with_id("open_folders", open_folder_label)
+            .accelerator("CmdOrCtrl+Shift+O")
+            .build(app)?;
+        let open_settings = MenuItemBuilder::with_id("open_settings", settings_label)
+            .accelerator("CmdOrCtrl+,")
+            .build(app)?;
+        let mut about_builder = AboutMetadataBuilder::new()
+            .name(Some("VXSearch"))
+            .version(Some(env!("CARGO_PKG_VERSION")))
+            // Empty AppKit build version prevents fallback to CFBundleVersion.
+            .short_version(Some(""))
+            .copyright(Some("© 2026 Bùi Việt Linh. All rights reserved."))
+            .authors(Some(vec!["Bùi Việt Linh".into()]))
+            .comments(Some(about_comments))
+            .website(Some("https://github.com/linhbv94/VXSearch"))
+            .website_label(Some("GitHub — VXSearch"))
+            .credits(Some(about_credits));
+        about_builder = about_builder.icon(Some(tauri::include_image!("icons/icon.png")));
+
+        let app_submenu = SubmenuBuilder::new(app, "VXSearch")
+            .about(Some(about_builder.build()))
+            .separator()
+            .item(&open_settings)
+            .separator()
+            .services()
+            .separator()
+            .hide()
+            .hide_others()
+            .show_all()
+            .separator()
+            .quit()
+            .build()?;
+
+        let file_submenu = SubmenuBuilder::new(app, file_menu_label)
+            .item(&open_file)
+            .item(&open_folder)
+            .separator()
+            .close_window()
+            .build()?;
+
+        let edit_submenu = SubmenuBuilder::new(app, edit_menu_label)
+            .undo()
+            .redo()
+            .separator()
+            .cut()
+            .copy()
+            .paste()
+            .select_all()
+            .build()?;
+
+        MenuBuilder::new(app)
+            .item(&app_submenu)
+            .item(&file_submenu)
+            .item(&edit_submenu)
+            .build()
+    };
+
+    if let Ok(menu) = build_menu() {
+        let _ = app.set_menu(menu);
+    }
+}
+
+#[tauri::command]
+fn set_app_language(app: tauri::AppHandle, lang: String) {
+    #[cfg(target_os = "macos")]
+    rebuild_mac_app_menu(&app, &lang);
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, lang);
+}
+
+
 struct DesktopState {
     engine: Engine,
     close_to_tray: AtomicBool,
@@ -480,6 +576,8 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            rebuild_mac_app_menu(app.handle(), "vi");
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             let handle = app.handle().clone();
@@ -536,6 +634,25 @@ pub fn run() {
                 popup_open_on_press: AtomicBool::new(false),
             });
             tray(app)?;
+            if let Some(win) = app.get_webview_window("main") {
+                if let Ok(Some(monitor)) = win.current_monitor() {
+                    let work = monitor.work_area();
+                    let scale = monitor.scale_factor();
+                    let work_w = work.size.width as f64 / scale;
+                    let work_h = work.size.height as f64 / scale;
+                    let available_w = (work_w - 32.0).max(1.0);
+                    let available_h = (work_h - 32.0).max(1.0);
+                    let target_w = 1100.0f64.min(available_w);
+                    let target_h = 720.0f64.min(available_h);
+                    // Relax minimums before sizing on small work areas; never force the window off-screen.
+                    let _ = win.set_min_size(Some(tauri::LogicalSize::new(720.0f64.min(available_w), 480.0f64.min(available_h))));
+                    let _ = win.set_size(tauri::LogicalSize::new(target_w, target_h));
+                    let _ = win.set_position(tauri::LogicalPosition::new(
+                        work.position.x as f64 / scale + (work_w - target_w) / 2.0,
+                        work.position.y as f64 / scale + (work_h - target_h) / 2.0,
+                    ));
+                }
+            }
             #[cfg(target_os = "macos")]
             if let Some(win) = app.get_webview_window("main") {
                 native_chrome::sync_mac_traffic_lights(&win);
@@ -588,7 +705,16 @@ pub fn run() {
                 }
             }
         })
+        .on_menu_event(|app, event| {
+            match event.id.as_ref() {
+                "open_settings" => { show_window(app); let _ = app.emit("open_panel", "settings"); },
+                "open_folders" => { show_window(app); let _ = app.emit("open_panel", "folders"); },
+                "search_focus" => reopen_surface(app),
+                _ => {}
+            }
+        })
         .invoke_handler(tauri::generate_handler![
+            set_app_language,
             get_system_status,
             get_watched_roots,
             search_files,

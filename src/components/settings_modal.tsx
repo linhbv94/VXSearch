@@ -1,25 +1,11 @@
+import type {AppSettings,SystemStatus,ToastType} from '../types/ipc_types';
+import type {AppLanguage,ExtendedThemeMode} from '../i18n/translations';
+import {SettingsShell,GeneralSettings,UpdatesSettings,AboutSettings,SupportSettings,commonSettingsTabs} from './shared/settings_ui';
+
 import {AppUpdates} from './app_updates';
-import React, { useEffect, useRef, useState } from "react";
-import {
-  AlertTriangle,
-  Coffee,
-  Database,
-  ExternalLink,
-  Info,
-  Keyboard,
-  RefreshCw,
-  RotateCcw,
-  Search,
-  Settings,
-  Sparkles,
-  X,
-} from "lucide-react";
-import type {
-  AppSettings,
-  SystemStatus,
-  ThemeMode,
-  ToastType,
-} from "../types/ipc_types";
+import {useEffect,useState} from 'react';
+import {AlertTriangle,Database,Keyboard,RefreshCw,Search} from 'lucide-react';
+
 import {
   ipcOpenProjectUrl,
   ipcResetSettings,
@@ -28,9 +14,11 @@ import {
   startWindowDrag,
 } from "../services/tauri_ipc";
 import { formatBytes, formatNumber, parseAppError } from "../utils/formatters";
+import {translations} from '../i18n/translations';
 
 export type SettingsTabId =
   | "general"
+  | "search"
   | "shortcuts"
   | "cache"
   | "updates"
@@ -40,9 +28,13 @@ export type SettingsTabId =
 interface SettingsModalProps {
   isOpen: boolean;
   initialTab?: SettingsTabId;
+  language: AppLanguage;
+  themeMode: ExtendedThemeMode;
   settings: AppSettings;
   systemStatus: SystemStatus;
   onClose: () => void;
+  onChangeLanguage: (lang: AppLanguage) => void;
+  onChangeThemeMode: (mode: ExtendedThemeMode) => void;
   onSettingsUpdated: (next: AppSettings) => void;
   onRefreshSystemStatus: () => Promise<void>;
   onNotify: (type: ToastType, message: string) => void;
@@ -107,13 +99,18 @@ function mapKeyCodeToHotkeyToken(code: string): string | null {
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   initialTab = "general",
+  language,
+  themeMode,
   settings,
   systemStatus,
   onClose,
+  onChangeLanguage,
+  onChangeThemeMode,
   onSettingsUpdated,
   onRefreshSystemStatus,
   onNotify,
 }) => {
+  const t = translations[language].settings;
   const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
   const [isSaving, setIsSaving] = useState(false);
   const [isRecordingHotkey, setIsRecordingHotkey] = useState(false);
@@ -124,98 +121,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     before: number;
     after: number;
   } | null>(null);
-  const [qrError, setQrError] = useState(false);
-  const [aboutIconError, setAboutIconError] = useState(false);
 
-  const dialogRef = useRef<HTMLDivElement | null>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+
+
+
 
   useEffect(() => {
     setDraftDebounceMs(settings.debounce_ms);
   }, [settings.debounce_ms]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    setLocalHotkeyError(null);
-    setIsRecordingHotkey(false);
 
-    const timer = window.setTimeout(() => {
-      const firstBtn = dialogRef.current?.querySelector<HTMLElement>(
-        "button.vx-sidebar-tab.is-active, button:not(:disabled)"
-      );
-      firstBtn?.focus();
-    }, 10);
 
-    return () => {
-      window.clearTimeout(timer);
-      previousFocusRef.current?.focus?.();
-    };
-  }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.isComposing || e.keyCode === 229) return;
-
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (isRecordingHotkey) {
-          setIsRecordingHotkey(false);
-          return;
-        }
-        if (isSaving || isVacuuming) {
-          return;
-        }
-        onClose();
-        return;
-      }
-
-      if (e.key === "Tab" && dialogRef.current && !isRecordingHotkey) {
-        const focusables = Array.from(
-          dialogRef.current.querySelectorAll<HTMLElement>(
-            'button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])'
-          )
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        const active = document.activeElement as HTMLElement | null;
-
-        if (e.shiftKey) {
-          if (!active || active === first || !dialogRef.current.contains(active)) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else {
-          if (!active || active === last || !dialogRef.current.contains(active)) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown, true);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown, true);
-    };
-  }, [isOpen, isRecordingHotkey, isSaving, isVacuuming, onClose]);
 
   if (!isOpen) return null;
 
   const isMac = !systemStatus.platform.toLowerCase().includes("win");
 
-  const handleHeaderMouseDown = (e: React.MouseEvent<HTMLElement>) => {
-    const target = e.target as HTMLElement;
-    if (target.closest(".no-drag")) return;
-    if (e.button === 0) {
-      void startWindowDrag();
-    }
-  };
+
 
   const persistFullSettings = async (
     next: AppSettings,
@@ -262,15 +186,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     try {
       const defaults = await ipcResetSettings();
       onSettingsUpdated(defaults);
+      onChangeThemeMode(defaults.theme);
       setDraftDebounceMs(defaults.debounce_ms);
       await onRefreshSystemStatus();
-      onNotify("success", "Đã khôi phục cài đặt mặc định.");
+      onNotify("success", t.resetSuccessToast);
     } catch (err) {
       const appErr = parseAppError(err);
       onNotify("error", appErr.message);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSelectThemeMode = async (mode: ExtendedThemeMode) => {
+    if (isSaving) return;
+    const backendTheme = mode === "oled" ? "dark" : mode;
+    if (settings.theme !== backendTheme && !(await persistFullSettings({...settings,theme:backendTheme}))) return;
+    onChangeThemeMode(mode);
   };
 
   const handleHotkeyRecordKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -289,10 +221,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       return;
     }
     if (!token) {
-      onNotify(
-        "warning",
-        "Phím này không hỗ trợ làm phím tắt toàn cục. Hãy chọn chữ cái, chữ số, F1–F24, Space hoặc mũi tên."
-      );
+      onNotify("warning", t.shortcuts.unsupportedKeyWarning);
       return;
     }
 
@@ -303,10 +232,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     if (e.shiftKey) parts.push("Shift");
 
     if (parts.length === 0) {
-      onNotify(
-        "warning",
-        "Tổ hợp phím cần có ít nhất 1 phím bổ trợ (Command/Super, Control, Alt hoặc Shift)."
-      );
+      onNotify("warning", t.shortcuts.modifierRequiredWarning);
       return;
     }
 
@@ -319,7 +245,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         global_hotkey: combo,
       },
       {
-        successMsg: `Đã cập nhật phím tắt toàn cục: ${combo}`,
+        successMsg: t.shortcuts.updatedHotkeyToast(combo),
         isHotkeyChange: true,
       }
     );
@@ -337,9 +263,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       await onRefreshSystemStatus();
       onNotify(
         "success",
-        `Đã thu gọn bộ nhớ chỉ mục: ${formatBytes(res.db_size_before_bytes)} → ${formatBytes(
-          res.db_size_after_bytes
-        )}`
+        t.cache.vacuumToast(
+          formatBytes(res.db_size_before_bytes),
+          formatBytes(res.db_size_after_bytes)
+        )
       );
     } catch (err) {
       const appErr = parseAppError(err);
@@ -351,149 +278,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const effectiveHotkeyError = localHotkeyError || systemStatus.hotkey_error;
 
-  return (
-    <div
-      className="vx-modal-backdrop"
-      onClick={(e) => {
-        if (
-          e.target === e.currentTarget &&
-          !isRecordingHotkey &&
-          !isSaving &&
-          !isVacuuming
-        ) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        ref={dialogRef}
-        className="vx-modal-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Cài đặt VXSearch"
-      >
-        <div
-          className="vx-modal-header"
-          data-tauri-drag-region
-          style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
-          onMouseDown={handleHeaderMouseDown}
-        >
-          <div className="vx-modal-title" data-tauri-drag-region>
-            <Settings style={{ width: 16, height: 16, color: "var(--accent-bright)" }} />
-            <span>Cài đặt VXSearch</span>
-          </div>
-          <button
-            type="button"
-            className="vx-icon-btn no-drag"
-            style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-            disabled={isSaving || isVacuuming}
-            onClick={onClose}
-            aria-label="Đóng"
-          >
-            <X style={{ width: 16, height: 16 }} />
-          </button>
-        </div>
 
-        <div className="vx-modal-body">
-          <aside className="vx-settings-sidebar" aria-label="Danh mục cài đặt">
-            <div className="vx-sidebar-group-title">Tính năng cốt lõi</div>
-            <button
-              type="button"
-              className={`vx-sidebar-tab ${activeTab === "general" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("general")}
-            >
-              <Settings style={{ width: 14, height: 14 }} />
-              <span>Chung (General)</span>
-            </button>
-            <button
-              type="button"
-              className={`vx-sidebar-tab ${activeTab === "shortcuts" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("shortcuts")}
-            >
-              <Keyboard style={{ width: 14, height: 14 }} />
-              <span>Phím tắt (Shortcuts)</span>
-            </button>
-            <button
-              type="button"
-              className={`vx-sidebar-tab ${activeTab === "cache" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("cache")}
-            >
-              <Database style={{ width: 14, height: 14 }} />
-              <span>Bộ nhớ chỉ mục</span>
-            </button>
 
-            <div className="vx-sidebar-divider" />
 
-            <div className="vx-sidebar-group-title">Thông tin & Hỗ trợ</div>
-            <button
-              type="button"
-              className={`vx-sidebar-tab ${activeTab === "updates" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("updates")}
-            >
-              <Sparkles style={{ width: 14, height: 14 }} />
-              <span>Cập nhật (Updates)</span>
-            </button>
-            <button
-              type="button"
-              className={`vx-sidebar-tab ${activeTab === "about" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("about")}
-            >
-              <Info style={{ width: 14, height: 14 }} />
-              <span>Giới thiệu (About)</span>
-            </button>
-            <button
-              type="button"
-              className={`vx-sidebar-tab is-support ${
-                activeTab === "support" ? "is-active" : ""
-              }`}
-              onClick={() => setActiveTab("support")}
-            >
-              <Coffee style={{ width: 14, height: 14, color: "var(--semantic-amber)" }} />
-              <span>Ủng hộ tác giả</span>
-            </button>
-          </aside>
 
-          <div className="vx-settings-content">
-            {activeTab === "general" && (
-              <>
+return (<SettingsShell theme={themeMode} appName="VXSearch" language={language} tabs={[commonSettingsTabs(language)[0], {id:'search',label:t.tabs.search,icon:<Search size={16}/>} ,{id:'shortcuts',label:t.tabs.shortcuts,icon:<Keyboard size={16}/>} ,{id:'cache',label:t.tabs.cache,icon:<Database size={16}/>} , ...commonSettingsTabs(language).slice(1)]} activeTab={activeTab} onTabChange={id=>setActiveTab(id as SettingsTabId)} onClose={onClose} onReset={handleResetDefaults}  disabled={isSaving || isVacuuming} canTrapTab={()=>!isRecordingHotkey} onEscape={()=>{if(isRecordingHotkey)setIsRecordingHotkey(false);else if(!isSaving&&!isVacuuming)onClose();}} onDrag={() => { void startWindowDrag(); }}>{activeTab === 'search' && (<>
                 <div className="vx-card">
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                    Giao diện & Chủ đề (Theme)
-                  </div>
-                  <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    Chọn chế độ màu hiển thị chuẩn VXUtilities.
-                  </p>
-                  <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                    {(
-                      [
-                        { id: "dark", label: "Tối (Dark Mode)" },
-                        { id: "light", label: "Sáng (Light Mode)" },
-                        { id: "system", label: "Theo hệ thống" },
-                      ] as Array<{ id: ThemeMode; label: string }>
-                    ).map((mode) => (
-                      <button
-                        key={mode.id}
-                        type="button"
-                        disabled={isSaving}
-                        className={`vx-btn ${
-                          settings.theme === mode.id ? "vx-btn-primary" : ""
-                        }`}
-                        onClick={() =>
-                          void persistFullSettings({
-                            ...settings,
-                            theme: mode.id,
-                          })
-                        }
-                      >
-                        {mode.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="vx-card">
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                    Hành vi cửa sổ & Tìm kiếm
+                    {t.search.windowBehaviorTitle}
                   </div>
 
                   <label
@@ -508,10 +300,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   >
                     <div>
                       <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-primary)" }}>
-                        Chạy ngầm trên Menu Bar / System Tray khi đóng cửa sổ
+                        {t.search.closeToTrayTitle}
                       </div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                        Giữ bộ theo dõi thư mục hoạt động nền và mở lại bằng phím tắt.
+                        {t.search.closeToTrayDesc}
                       </div>
                     </div>
                     <input
@@ -539,10 +331,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   >
                     <div>
                       <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-primary)" }}>
-                        Tự động bôi đen ô tìm kiếm khi kích hoạt cửa sổ
+                        {t.search.autoSelectTitle}
                       </div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                        Cho phép gõ từ khóa mới ngay khi gọi cửa sổ VXSearch.
+                        {t.search.autoSelectDesc}
                       </div>
                     </div>
                     <input
@@ -568,12 +360,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     }}
                   >
                     <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                      Độ trễ tìm kiếm (Debounce)
+                      {t.search.debounceTitle}
                     </span>
                     <span className="vx-badge-pill">{draftDebounceMs} ms</span>
                   </div>
                   <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    Thời gian chờ trước khi thực hiện tìm kiếm khi bạn đang gõ phím (100ms – 2000ms).
+                    {t.search.debounceDesc}
                   </p>
                   <input
                     type="range"
@@ -588,21 +380,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onBlur={commitDraftDebounce}
                   />
                 </div>
-              </>
-            )}
-
-            {activeTab === "shortcuts" && (
-              <>
+              </>)}
+{activeTab === 'shortcuts' && (<>
                 <div className="vx-card">
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                    Phím tắt toàn cục (Global Hotkey)
+                    {t.shortcuts.globalHotkeyTitle}
                   </div>
                   <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    Nhấn tổ hợp phím này để hiện/ẩn nhanh cửa sổ VXSearch. Mặc định{" "}
+                    {t.shortcuts.globalHotkeyDescPrefix}
                     <code className="font-mono">
                       {isMac ? "Command+Shift+F" : "Alt+Shift+F"}
-                    </code>{" "}
-                    (dự phòng <code className="font-mono">Control+Alt+F</code> nếu bị chiếm).
+                    </code>
+                    {t.shortcuts.globalHotkeyDescMiddle}
+                    <code className="font-mono">Control+Alt+F</code>
+                    {t.shortcuts.globalHotkeyDescSuffix}
                   </p>
 
                   {effectiveHotkeyError && (
@@ -647,8 +438,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       onKeyDown={handleHotkeyRecordKeyDown}
                     >
                       {isRecordingHotkey
-                        ? "Nhấn tổ hợp phím mới... (Esc để hủy)"
-                        : "Ghi phím tắt mới"}
+                        ? t.shortcuts.recordingPrompt
+                        : t.shortcuts.recordBtn}
                     </button>
                   </div>
 
@@ -670,13 +461,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               global_hotkey: preset,
                             },
                             {
-                              successMsg: `Đã đặt phím tắt: ${preset}`,
+                              successMsg: t.shortcuts.presetHotkeyToast(preset),
                               isHotkeyChange: true,
                             }
                           )
                         }
                       >
-                        Dùng <span className="font-mono">{preset}</span>
+                        {t.shortcuts.usePresetPrefix}
+                        <span className="font-mono">{preset}</span>
                       </button>
                     ))}
                   </div>
@@ -684,39 +476,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 <div className="vx-card">
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                    Bảng phím tắt điều hướng trong ứng dụng
+                    {t.shortcuts.navTableTitle}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 11 }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Di chuyển lên / xuống danh sách kết quả</span>
+                      <span>{t.shortcuts.navMove}</span>
                       <span className="vx-kbd-tag">↑ / ↓</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Mở tệp đang chọn bằng ứng dụng mặc định</span>
+                      <span>{t.shortcuts.navOpen}</span>
                       <span className="vx-kbd-tag">Enter</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Hiện vị trí tệp trong Finder / Explorer</span>
+                      <span>{t.shortcuts.navReveal}</span>
                       <span className="vx-kbd-tag">{isMac ? "⌘ + Enter" : "Ctrl + Enter"}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Sao chép đường dẫn đầy đủ của tệp đang chọn</span>
+                      <span>{t.shortcuts.navCopy}</span>
                       <span className="vx-kbd-tag">{isMac ? "⌘ + C" : "Ctrl + C"}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Xóa từ khóa tìm kiếm / Đóng hộp thoại / Ẩn cửa sổ</span>
+                      <span>{t.shortcuts.navSettings}</span>
+                      <span className="vx-kbd-tag">{isMac ? "⌘ + ," : "Ctrl + ,"}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>{t.shortcuts.navEsc}</span>
                       <span className="vx-kbd-tag">Escape</span>
                     </div>
                   </div>
                 </div>
-              </>
-            )}
-
-            {activeTab === "cache" && (
-              <>
+              </>)}
+{activeTab === 'cache' && (<>
                 <div className="vx-card">
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                    Bộ nhớ chỉ mục
+                    {t.cache.title}
                   </div>
                   <div
                     style={{
@@ -735,13 +528,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }}
                     >
                       <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                        SỐ THƯ MỤC THEO DÕI
+                        {t.cache.statRoots}
                       </div>
                       <div
                         className="font-mono"
                         style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}
                       >
-                        {formatNumber(systemStatus.total_roots)}
+                        {formatNumber(systemStatus.total_roots, language)}
                       </div>
                     </div>
 
@@ -754,13 +547,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }}
                     >
                       <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                        TỔNG SỐ TỆP TRONG CHỈ MỤC
+                        {t.cache.statFiles}
                       </div>
                       <div
                         className="font-mono"
                         style={{ fontSize: 16, fontWeight: 700, color: "var(--accent-bright)" }}
                       >
-                        {formatNumber(systemStatus.total_files)}
+                        {formatNumber(systemStatus.total_files, language)}
                       </div>
                     </div>
 
@@ -773,7 +566,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }}
                     >
                       <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                        TỔNG DUNG LƯỢNG TỆP GỐC
+                        {t.cache.statSourceSize}
                       </div>
                       <div
                         className="font-mono"
@@ -792,7 +585,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }}
                     >
                       <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                        DUNG LƯỢNG BỘ NHỚ CHỈ MỤC
+                        {t.cache.statDbSize}
                       </div>
                       <div
                         className="font-mono"
@@ -806,10 +599,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 <div className="vx-card">
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                    Thu gọn chỉ mục
+                    {t.cache.vacuumTitle}
                   </div>
                   <p style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                    Giải phóng dung lượng trống trong bộ nhớ chỉ mục sau khi bạn gỡ bỏ các thư mục lớn.
+                    {t.cache.vacuumDesc}
                   </p>
 
                   {lastVacuumInfo && (
@@ -823,7 +616,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         background: "var(--semantic-emerald-bg)",
                       }}
                     >
-                      Đã thu gọn: {formatBytes(lastVacuumInfo.before)} →{" "}
+                      {t.cache.vacuumDonePrefix} {formatBytes(lastVacuumInfo.before)} →{" "}
                       {formatBytes(lastVacuumInfo.after)}
                     </div>
                   )}
@@ -837,221 +630,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     >
                       <RefreshCw style={{ width: 14, height: 14 }} />
                       <span>
-                        {isVacuuming ? "Đang thu gọn..." : "Thu gọn chỉ mục"}
+                        {isVacuuming ? t.cache.vacuumingBtn : t.cache.vacuumBtn}
                       </span>
                     </button>
                   </div>
                 </div>
-              </>
-            )}
-
-            {activeTab === "updates" && (
-              <><div className="vx-card">Phiên bản đang chạy: v{systemStatus.app_version} ({systemStatus.platform})</div><AppUpdates /></>
-            )}
-
-            {activeTab === "about" && (
-              <div className="vx-card" style={{ gap: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  {!aboutIconError ? (
-                    <img
-                      src="/app_icon.png"
-                      alt="VXSearch"
-                      style={{ width: 44, height: 44, borderRadius: 10 }}
-                      onError={() => setAboutIconError(true)}
-                    />
-                  ) : (
-                    <div className="vx-empty-icon-circle">
-                      <Search style={{ width: 22, height: 22 }} />
-                    </div>
-                  )}
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>
-                      VXSearch
-                    </div>
-                    <div className="font-mono" style={{ fontSize: 11, color: "var(--accent-bright)" }}>
-                      Phiên bản v{systemStatus.app_version || "0.1.0"} • Nền tảng:{" "}
-                      {systemStatus.platform}
-                    </div>
-                  </div>
-                </div>
-
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.55 }}>
-                  VXSearch là tiện ích tìm kiếm tệp cục bộ theo danh sách thư mục chỉ định thuộc hệ sinh thái{" "}
-                  <strong>VXUtilities</strong>. Ứng dụng lập chỉ mục tên và đường dẫn tệp cục bộ, đồng thời theo dõi sự kiện thay đổi thư mục theo thời gian thực.
-                </p>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 6,
-                    padding: "10px 12px",
-                    borderRadius: "var(--radius-lg)",
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border-subtle)",
-                    fontSize: 12,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-muted)" }}>Tác giả:</span>
-                    <strong style={{ color: "var(--text-primary)" }}>Bùi Việt Linh</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "var(--text-muted)" }}>Mã nguồn & Dự án:</span>
-                    <button
-                      type="button"
-                      className="vx-chrome-btn"
-                      style={{ color: "var(--accent-bright)", padding: "0 6px" }}
-                      onClick={() => void ipcOpenProjectUrl()}
-                    >
-                      <span>https://github.com/linhbv94/VXSearch</span>
-                      <ExternalLink style={{ width: 12, height: 12 }} />
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      color: "var(--text-muted)",
-                      marginBottom: 6,
-                    }}
-                  >
-                    Công nghệ nền tảng
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {[
-                      "Tauri 2",
-                      "Rust Core",
-                      "SQLite",
-                      "Notify Watcher",
-                      "React 19",
-                      "TypeScript",
-                    ].map((tech) => (
-                      <span key={tech} className="vx-kbd-tag">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "support" && (
-              <div
-                className="vx-card"
-                style={{
-                  alignItems: "center",
-                  textAlign: "center",
-                  padding: "18px 16px",
-                  gap: 12,
-                }}
-              >
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "4px 10px",
-                    borderRadius: 9999,
-                    background: "var(--semantic-amber-bg)",
-                    color: "var(--semantic-amber)",
-                    fontSize: 12,
-                    fontWeight: 600,
-                  }}
-                >
-                  <Coffee style={{ width: 14, height: 14 }} />
-                  <span>Ủng hộ tác giả Bùi Việt Linh</span>
-                </div>
-
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "var(--text-secondary)",
-                    maxWidth: 410,
-                    lineHeight: 1.55,
-                  }}
-                >
-                  Cảm ơn bạn đã tin tưởng sử dụng <strong>VXSearch</strong> trong công việc hằng ngày! Nếu ứng dụng giúp bạn tiết kiệm thời gian, bạn có thể mời tác giả một ly cà phê qua mã VietQR bên dưới.
-                </p>
-
-                <div
-                  style={{
-                    background: "#ffffff",
-                    padding: 14,
-                    borderRadius: 16,
-                    boxShadow: "0 12px 28px rgba(0, 0, 0, 0.35)",
-                    display: "inline-flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {!qrError ? (
-                    <img
-                      src="/support_qr.png"
-                      alt="Mã QR VietQR ủng hộ tác giả Bùi Việt Linh"
-                      style={{
-                        width: 210,
-                        height: 210,
-                        objectFit: "contain",
-                        display: "block",
-                      }}
-                      onError={() => setQrError(true)}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: 210,
-                        height: 210,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#0f172a",
-                        fontSize: 11,
-                        padding: 12,
-                      }}
-                    >
-                      <Coffee style={{ width: 28, height: 28, color: "#d97706", marginBottom: 6 }} />
-                      <strong>Mã QR VietQR</strong>
-                      <span>(/support_qr.png)</span>
-                    </div>
-                  )}
-                </div>
-
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                  Quét trực tiếp bằng ứng dụng Ngân hàng trên điện thoại
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="vx-modal-footer">
-          <button
-            type="button"
-            className="vx-btn"
-            disabled={isSaving || isVacuuming}
-            onClick={() => void handleResetDefaults()}
-          >
-            <RotateCcw style={{ width: 13, height: 13 }} />
-            <span>Khôi phục mặc định</span>
-          </button>
-
-          <button
-            type="button"
-            className="vx-btn vx-btn-primary"
-            disabled={isSaving || isVacuuming}
-            onClick={onClose}
-          >
-            Đóng
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+              </>)}
+{activeTab === 'general' && <GeneralSettings language={language} theme={themeMode} themes={['system','dark','light','oled']} onThemeChange={handleSelectThemeMode} onLanguageChange={onChangeLanguage} disabled={isSaving || isVacuuming}/>}
+{activeTab === 'updates' && <UpdatesSettings language={language} version={systemStatus.app_version}><AppUpdates language={language}/></UpdatesSettings>}
+{activeTab === 'about' && <AboutSettings language={language} appName="VXSearch" version={systemStatus.app_version}  description={t.about.description} repository="https://github.com/linhbv94/VXSearch" icon={<Search/>} technologies={["Tauri 2","Rust Core","SQLite","Notify Watcher","React 19","TypeScript"]} onOpenRepository={() => { void ipcOpenProjectUrl(); }}/>}
+{activeTab === 'support' && <SupportSettings language={language} qrSource={"/support_qr.png"}/>}</SettingsShell>);
 };

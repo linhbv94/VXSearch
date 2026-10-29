@@ -12,9 +12,12 @@ export function formatBytes(bytes: number | null | undefined): string {
   return `${val >= 100 || i === 0 ? val.toFixed(0) : val >= 10 ? val.toFixed(1) : val.toFixed(2)} ${units[i]}`;
 }
 
-export function formatNumber(num: number | null | undefined): string {
+export function formatNumber(
+  num: number | null | undefined,
+  lang: "vi" | "en" = "vi"
+): string {
   if (num === null || num === undefined || Number.isNaN(num)) return "0";
-  return num.toLocaleString("vi-VN");
+  return num.toLocaleString(lang === "en" ? "en-US" : "vi-VN");
 }
 
 export function formatTimestamp(epochSecondsOrMs: number | null | undefined): string {

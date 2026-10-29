@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 import type { FileFilterType, SortByOption, WatchedRoot } from "../types/ipc_types";
 import { formatNumber, getFolderBasename } from "../utils/formatters";
+import { type AppLanguage, translations } from "../i18n/translations";
 
 interface SearchSectionProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
+  language?: AppLanguage;
   query: string;
   filterType: FileFilterType;
   rootId: number | null;
@@ -32,23 +34,23 @@ interface SearchSectionProps {
   onClearAll: () => void;
 }
 
-const FILTER_CHIPS: Array<{
+const FILTER_CHIP_ICONS: Array<{
   id: FileFilterType;
-  label: string;
   icon: React.ReactNode;
 }> = [
-  { id: "all", label: "Tất cả", icon: <Layers style={{ width: 13, height: 13 }} /> },
-  { id: "document", label: "Tài liệu", icon: <FileText style={{ width: 13, height: 13 }} /> },
-  { id: "image", label: "Ảnh", icon: <ImageIcon style={{ width: 13, height: 13 }} /> },
-  { id: "video", label: "Video", icon: <Film style={{ width: 13, height: 13 }} /> },
-  { id: "audio", label: "Âm thanh", icon: <Music style={{ width: 13, height: 13 }} /> },
-  { id: "code", label: "Code", icon: <Code2 style={{ width: 13, height: 13 }} /> },
-  { id: "archive", label: "Nén", icon: <Archive style={{ width: 13, height: 13 }} /> },
-  { id: "directory", label: "Thư mục", icon: <Folder style={{ width: 13, height: 13 }} /> },
+  { id: "all", icon: <Layers style={{ width: 13, height: 13 }} /> },
+  { id: "document", icon: <FileText style={{ width: 13, height: 13 }} /> },
+  { id: "image", icon: <ImageIcon style={{ width: 13, height: 13 }} /> },
+  { id: "video", icon: <Film style={{ width: 13, height: 13 }} /> },
+  { id: "audio", icon: <Music style={{ width: 13, height: 13 }} /> },
+  { id: "code", icon: <Code2 style={{ width: 13, height: 13 }} /> },
+  { id: "archive", icon: <Archive style={{ width: 13, height: 13 }} /> },
+  { id: "directory", icon: <Folder style={{ width: 13, height: 13 }} /> },
 ];
 
 export const SearchSection: React.FC<SearchSectionProps> = ({
   inputRef,
+  language = "vi",
   query,
   filterType,
   rootId,
@@ -63,6 +65,8 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   onChangeSortBy,
   onClearAll,
 }) => {
+  const t = translations[language].searchSection;
+
   return (
     <section className="vx-search-section">
       <div className="vx-search-input-wrap">
@@ -79,7 +83,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
           type="text"
           value={query}
           onChange={(e) => onChangeQuery(e.target.value)}
-          placeholder="Nhập tên tệp, đường dẫn hoặc phần mở rộng (.pdf, .rs, .mp3)..."
+          placeholder={t.placeholder}
           className="vx-search-input"
           autoFocus
           spellCheck={false}
@@ -87,15 +91,18 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         />
         <div className="vx-search-meta">
           <span className="font-mono" style={{ fontSize: 10, color: "var(--text-muted)" }}>
-            {formatNumber(totalMatched)} kết quả • {Number.isFinite(tookMs) ? tookMs.toFixed(2) : "0.00"}ms
+            {t.resultsMeta(
+              formatNumber(totalMatched, language),
+              Number.isFinite(tookMs) ? tookMs.toFixed(2) : "0.00"
+            )}
           </span>
           {(query.length > 0 || filterType !== "all" || rootId !== null) && (
             <button
               type="button"
               className="vx-icon-btn"
               onClick={onClearAll}
-              title="Xóa từ khóa và bộ lọc (Esc)"
-              aria-label="Xóa từ khóa"
+              title={t.clearTitle}
+              aria-label={t.clearAria}
             >
               <X style={{ width: 14, height: 14 }} />
             </button>
@@ -105,8 +112,8 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
       </div>
 
       <div className="vx-filter-bar">
-        <div className="vx-chips-group" role="tablist" aria-label="Lọc theo loại tệp">
-          {FILTER_CHIPS.map((chip) => {
+        <div className="vx-chips-group" role="tablist" aria-label={t.filterTablistAria}>
+          {FILTER_CHIP_ICONS.map((chip) => {
             const active = filterType === chip.id;
             return (
               <button
@@ -118,14 +125,14 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
                 onClick={() => onChangeFilterType(chip.id)}
               >
                 {chip.icon}
-                <span>{chip.label}</span>
+                <span>{t.chips[chip.id]}</span>
               </button>
             );
           })}
         </div>
 
         <div className="vx-filter-selects">
-          <div className="vx-select-wrap" title="Lọc theo thư mục gốc">
+          <div className="vx-select-wrap" title={t.filterByRootTitle}>
             <select
               className="vx-select"
               value={rootId === null ? "" : String(rootId)}
@@ -133,9 +140,9 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
                 const val = e.target.value;
                 onChangeRootId(val === "" ? null : Number(val));
               }}
-              aria-label="Lọc theo thư mục theo dõi"
+              aria-label={t.filterByRootAria}
             >
-              <option value="">Tất cả thư mục</option>
+              <option value="">{t.allFoldersOption}</option>
               {watchedRoots.map((root) => (
                 <option key={root.id} value={String(root.id)}>
                   {root.alias || getFolderBasename(root.path)}
@@ -145,17 +152,17 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             <ChevronDown className="vx-select-icon" style={{ width: 12, height: 12 }} />
           </div>
 
-          <div className="vx-select-wrap" title="Sắp xếp kết quả">
+          <div className="vx-select-wrap" title={t.sortTitle}>
             <select
               className="vx-select"
               value={sortBy}
               onChange={(e) => onChangeSortBy(e.target.value as SortByOption)}
-              aria-label="Sắp xếp kết quả"
+              aria-label={t.sortAria}
             >
-              <option value="relevance">Phù hợp nhất</option>
-              <option value="modified_desc">Mới cập nhật</option>
-              <option value="size_desc">Dung lượng giảm</option>
-              <option value="name_asc">Tên A → Z</option>
+              <option value="relevance">{t.sortOptions.relevance}</option>
+              <option value="modified_desc">{t.sortOptions.modified_desc}</option>
+              <option value="size_desc">{t.sortOptions.size_desc}</option>
+              <option value="name_asc">{t.sortOptions.name_asc}</option>
             </select>
             <ChevronDown className="vx-select-icon" style={{ width: 12, height: 12 }} />
           </div>

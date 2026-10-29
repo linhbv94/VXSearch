@@ -1,11 +1,11 @@
 {
   "name": "vxsearch",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/check_settings_ui.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "node scripts/tauri_sdk.mjs",
     "test:ui": "node scripts/test_ui.mjs",

@@ -32,8 +32,10 @@ import {
   splitHighlightSegments,
   truncateMiddlePath,
 } from "../utils/formatters";
+import { type AppLanguage, translations } from "../i18n/translations";
 
 interface ResultListProps {
+  language?: AppLanguage;
   items: SearchResultItem[];
   totalMatched: number;
   pageOffset: number;
@@ -82,6 +84,7 @@ function renderFileIcon(item: SearchResultItem): React.ReactNode {
 }
 
 export const ResultList: React.FC<ResultListProps> = ({
+  language = "vi",
   items,
   totalMatched,
   pageOffset,
@@ -106,6 +109,7 @@ export const ResultList: React.FC<ResultListProps> = ({
   onResetFilters,
   onOpenFolderManager,
 }) => {
+  const t = translations[language].resultList;
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Array<HTMLDivElement | null>>([]);
   const isMac = !platform.toLowerCase().includes("win");
@@ -153,10 +157,10 @@ export const ResultList: React.FC<ResultListProps> = ({
         <div className="vx-banner is-warning">
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Info style={{ width: 14, height: 14, flexShrink: 0 }} />
-            <span>Mở bản desktop để chọn thư mục và tìm tệp.</span>
+            <span>{t.browserPreviewBanner}</span>
           </div>
           <button type="button" className="vx-chrome-btn" onClick={onOpenFolderManager}>
-            Thư mục theo dõi
+            {t.watchedFoldersBtn}
           </button>
         </div>
       )}
@@ -165,7 +169,10 @@ export const ResultList: React.FC<ResultListProps> = ({
         <div className="vx-banner is-warning">
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <AlertTriangle style={{ width: 14, height: 14, flexShrink: 0 }} />
-            <span>Lưu ý phím tắt: {hotkeyError}</span>
+            <span>
+              {t.hotkeyWarningPrefix}
+              {hotkeyError}
+            </span>
           </div>
         </div>
       )}
@@ -184,15 +191,15 @@ export const ResultList: React.FC<ResultListProps> = ({
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
             <RefreshCw style={{ width: 13, height: 13, flexShrink: 0 }} />
             <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              Đang lập chỉ mục:{" "}
+              {t.indexingPrefix}
               {scanProgress?.current_path
                 ? truncateMiddlePath(scanProgress.current_path, 52)
-                : "Đang duyệt cây thư mục..."}
+                : t.walkingTree}
             </span>
           </div>
           {scanProgress && (
             <span className="font-mono" style={{ flexShrink: 0, fontWeight: 600 }}>
-              Đã ghi nhận: {formatNumber(scanProgress.scanned_count)} tệp
+              {t.indexedCount(formatNumber(scanProgress.scanned_count, language))}
             </span>
           )}
         </div>
@@ -218,12 +225,12 @@ export const ResultList: React.FC<ResultListProps> = ({
               }}
             >
               {unavailableRoots.length === 1 && unavailableRoots[0].error_message
-                ? `Thư mục hiện không khả dụng: ${unavailableRoots[0].error_message}`
-                : `Có ${unavailableRoots.length} thư mục hiện không khả dụng. Chỉ mục được giữ nguyên.`}
+                ? t.unavailableSingle(unavailableRoots[0].error_message)
+                : t.unavailableMulti(unavailableRoots.length)}
             </span>
           </div>
           <button type="button" className="vx-chrome-btn" onClick={onOpenFolderManager}>
-            Kiểm tra
+            {t.checkBtn}
           </button>
         </div>
       )}
@@ -231,11 +238,11 @@ export const ResultList: React.FC<ResultListProps> = ({
       {items.length > 0 ? (
         <>
           <div className="vx-table-header">
-            <span>Tên tệp & định dạng</span>
-            <span>Thư mục cha</span>
-            <span style={{ textAlign: "right" }}>Dung lượng</span>
-            <span style={{ textAlign: "right" }}>Cập nhật</span>
-            <span style={{ textAlign: "right" }}>Thao tác</span>
+            <span>{t.colName}</span>
+            <span>{t.colParent}</span>
+            <span style={{ textAlign: "right" }}>{t.colSize}</span>
+            <span style={{ textAlign: "right" }}>{t.colUpdated}</span>
+            <span style={{ textAlign: "right" }}>{t.colActions}</span>
           </div>
 
           <div
@@ -243,7 +250,7 @@ export const ResultList: React.FC<ResultListProps> = ({
             className="vx-results-scroll"
             role="listbox"
             tabIndex={-1}
-            aria-label="Danh sách kết quả tìm kiếm"
+            aria-label={t.listboxAria}
           >
             {items.map((item, idx) => {
               const isSelected = idx === selectedIndex;
@@ -251,8 +258,8 @@ export const ResultList: React.FC<ResultListProps> = ({
               const parentRoot = rootMap.get(item.root_id);
               const rootErrorDetail = parentRoot?.error_message;
               const unavailableTooltip = rootErrorDetail
-                ? `Thư mục hiện không khả dụng (${rootErrorDetail})`
-                : "Thư mục hiện không khả dụng — không thể mở/định vị tệp";
+                ? t.unavailableTooltipWithDetail(rootErrorDetail)
+                : t.unavailableTooltip;
 
               return (
                 <div
@@ -289,10 +296,10 @@ export const ResultList: React.FC<ResultListProps> = ({
                       {item.is_offline && (
                         <span
                           className="vx-offline-tag"
-                          title={rootErrorDetail || "Thư mục hiện không khả dụng"}
+                          title={rootErrorDetail || t.unavailableTag}
                         >
                           <AlertTriangle style={{ width: 10, height: 10 }} />
-                          Thư mục hiện không khả dụng
+                          {t.unavailableTag}
                           {rootErrorDetail ? ` • ${truncateMiddlePath(rootErrorDetail, 28)}` : ""}
                         </span>
                       )}
@@ -305,7 +312,7 @@ export const ResultList: React.FC<ResultListProps> = ({
                   </div>
 
                   <div className="vx-cell-size">
-                    {item.is_directory ? "Thư mục" : formatBytes(item.size_bytes)}
+                    {item.is_directory ? t.directorySizeLabel : formatBytes(item.size_bytes)}
                   </div>
 
                   <div className="vx-cell-date">{formatTimestamp(item.modified_at)}</div>
@@ -320,9 +327,9 @@ export const ResultList: React.FC<ResultListProps> = ({
                       className="vx-icon-btn vx-tooltip-btn"
                       disabled={item.is_offline}
                       data-tooltip={
-                        item.is_offline ? unavailableTooltip : "Mở tệp (Enter)"
+                        item.is_offline ? unavailableTooltip : t.openFileTooltip
                       }
-                      aria-label="Mở tệp"
+                      aria-label={t.openFileAria}
                       onClick={() => onOpenItem(item)}
                     >
                       <ExternalLink style={{ width: 14, height: 14 }} />
@@ -335,9 +342,9 @@ export const ResultList: React.FC<ResultListProps> = ({
                       data-tooltip={
                         item.is_offline
                           ? unavailableTooltip
-                          : `Hiện vị trí tệp (${modSymbol}↵)`
+                          : t.revealFileTooltip(modSymbol)
                       }
-                      aria-label="Hiện vị trí tệp"
+                      aria-label={t.revealFileAria}
                       onClick={() => onRevealItem(item)}
                     >
                       <FolderOpen style={{ width: 14, height: 14 }} />
@@ -346,8 +353,8 @@ export const ResultList: React.FC<ResultListProps> = ({
                     <button
                       type="button"
                       className="vx-icon-btn vx-tooltip-btn"
-                      data-tooltip={`Chép đường dẫn (${modSymbol}C)`}
-                      aria-label="Chép đường dẫn"
+                      data-tooltip={t.copyPathTooltip(modSymbol)}
+                      aria-label={t.copyPathAria}
                       onClick={() => onCopyPath(item)}
                     >
                       <Copy style={{ width: 14, height: 14 }} />
@@ -360,23 +367,23 @@ export const ResultList: React.FC<ResultListProps> = ({
 
           <div className="vx-pagination-bar">
             <span>
-              Trang{" "}
+              {t.pageLabel}{" "}
               <strong className="font-mono" style={{ color: "var(--text-primary)" }}>
-                {formatNumber(currentPage)}
+                {formatNumber(currentPage, language)}
               </strong>{" "}
               /{" "}
               <strong className="font-mono" style={{ color: "var(--text-primary)" }}>
-                {formatNumber(totalPages)}
+                {formatNumber(totalPages, language)}
               </strong>{" "}
-              • Hiển thị{" "}
+              • {t.showingLabel}{" "}
               <strong className="font-mono" style={{ color: "var(--text-primary)" }}>
-                {formatNumber(rangeStart)}–{formatNumber(rangeEnd)}
+                {formatNumber(rangeStart, language)}–{formatNumber(rangeEnd, language)}
               </strong>{" "}
-              trên tổng{" "}
+              {t.ofTotalLabel}{" "}
               <strong className="font-mono" style={{ color: "var(--text-primary)" }}>
-                {formatNumber(totalMatched)}
+                {formatNumber(totalMatched, language)}
               </strong>{" "}
-              kết quả
+              {t.resultsUnit}
             </span>
 
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -388,7 +395,7 @@ export const ResultList: React.FC<ResultListProps> = ({
                 onClick={() => onPageChange(Math.max(0, pageOffset - pageSize))}
               >
                 <ChevronLeft style={{ width: 13, height: 13 }} />
-                <span>Trang trước</span>
+                <span>{t.prevPage}</span>
               </button>
 
               <button
@@ -398,7 +405,7 @@ export const ResultList: React.FC<ResultListProps> = ({
                 disabled={!hasNextPage || isSearching}
                 onClick={() => onPageChange(pageOffset + pageSize)}
               >
-                <span>Trang sau</span>
+                <span>{t.nextPage}</span>
                 <ChevronRight style={{ width: 13, height: 13 }} />
               </button>
             </div>
@@ -413,12 +420,12 @@ export const ResultList: React.FC<ResultListProps> = ({
               </div>
               <div className="vx-empty-title">
                 {isBrowserPreview
-                  ? "Mở bản desktop để chọn thư mục và tìm tệp."
-                  : "Chưa có thư mục nào trong danh sách theo dõi"}
+                  ? t.browserPreviewBanner
+                  : t.emptyNoRootsTitle}
               </div>
               {!isBrowserPreview && (
                 <p className="vx-empty-desc">
-                  VXSearch chỉ lập chỉ mục tên và đường dẫn trong các thư mục bạn chủ động chọn.
+                  {t.emptyNoRootsDesc}
                 </p>
               )}
               <button
@@ -427,7 +434,7 @@ export const ResultList: React.FC<ResultListProps> = ({
                 onClick={onOpenFolderManager}
               >
                 <FolderPlus style={{ width: 14, height: 14 }} />
-                <span>Mở quản lý thư mục theo dõi</span>
+                <span>{t.openFolderManagerBtn}</span>
               </button>
             </>
           ) : (
@@ -437,18 +444,21 @@ export const ResultList: React.FC<ResultListProps> = ({
               </div>
               <div className="vx-empty-title">
                 {query.trim()
-                  ? `Không tìm thấy tệp nào khớp với "${query}"`
-                  : "Không có tệp nào khớp với bộ lọc hiện tại"}
+                  ? t.emptyNoMatchQuery(query)
+                  : t.emptyNoMatchFilter}
               </div>
               <p className="vx-empty-desc">
-                Kiểm tra lại từ khóa, ký tự mở rộng (ví dụ <code className="font-mono">.pdf</code>,{" "}
-                <code className="font-mono">.rs</code>), chuyển bộ lọc sang <strong>Tất cả</strong>{" "}
-                hoặc thêm thư mục chứa tệp vào danh sách theo dõi.
+                {t.emptyNoMatchDescPrefix}
+                <code className="font-mono">.pdf</code>,{" "}
+                <code className="font-mono">.rs</code>
+                {t.emptyNoMatchDescMiddle}
+                <strong>{t.emptyNoMatchDescAll}</strong>
+                {t.emptyNoMatchDescSuffix}
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {(query.trim() !== "" || filterType !== "all" || rootId !== null) && (
                   <button type="button" className="vx-btn" onClick={onResetFilters}>
-                    Xóa bộ lọc tìm kiếm
+                    {t.clearFiltersBtn}
                   </button>
                 )}
                 <button
@@ -457,7 +467,7 @@ export const ResultList: React.FC<ResultListProps> = ({
                   onClick={onOpenFolderManager}
                 >
                   <FolderOpen style={{ width: 14, height: 14 }} />
-                  <span>Quản lý thư mục theo dõi</span>
+                  <span>{t.manageFoldersBtn}</span>
                 </button>
               </div>
             </>

@@ -1,18 +1,22 @@
 import React from "react";
 import type { SystemStatus } from "../types/ipc_types";
 import { formatBytes, formatNumber } from "../utils/formatters";
+import { type AppLanguage, translations } from "../i18n/translations";
 
 interface StatusFooterProps {
+  language?: AppLanguage;
   systemStatus: SystemStatus;
   isBrowserPreview: boolean;
   isScanning: boolean;
 }
 
 export const StatusFooter: React.FC<StatusFooterProps> = ({
+  language = "vi",
   systemStatus,
   isBrowserPreview,
   isScanning,
 }) => {
+  const t = translations[language].statusFooter;
   const isMac = !systemStatus.platform.toLowerCase().includes("win");
   const modKey = isMac ? "⌘" : "Ctrl+";
 
@@ -30,37 +34,37 @@ export const StatusFooter: React.FC<StatusFooterProps> = ({
         />
         <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           <strong className="font-mono" style={{ color: "var(--text-secondary)" }}>
-            {formatNumber(systemStatus.total_roots)}
+            {formatNumber(systemStatus.total_roots, language)}
           </strong>{" "}
-          thư mục •{" "}
+          {t.foldersUnit} •{" "}
           <strong className="font-mono" style={{ color: "var(--text-secondary)" }}>
-            {formatNumber(systemStatus.total_files)}
+            {formatNumber(systemStatus.total_files, language)}
           </strong>{" "}
-          tệp ({formatBytes(systemStatus.total_size_bytes)}) • Chỉ mục{" "}
+          {t.filesUnit} ({formatBytes(systemStatus.total_size_bytes)}) • {t.indexLabel}{" "}
           <span className="font-mono">{formatBytes(systemStatus.db_size_bytes)}</span> •{" "}
           {isBrowserPreview
-            ? "Mở bản desktop để chọn thư mục và tìm tệp."
+            ? t.browserPreview
             : isScanning
-              ? "Đang lập chỉ mục..."
-              : "Sẵn sàng"}
+              ? t.scanning
+              : t.ready}
         </span>
       </div>
 
       <div className="vx-footer-right">
         <span>
-          <span className="vx-kbd-tag">↑↓</span> Chọn
+          <span className="vx-kbd-tag">↑↓</span> {t.selectHint}
         </span>
         <span>
-          <span className="vx-kbd-tag">↵</span> Mở
+          <span className="vx-kbd-tag">↵</span> {t.openHint}
         </span>
         <span>
-          <span className="vx-kbd-tag">{modKey}↵</span> Vị trí
+          <span className="vx-kbd-tag">{modKey}↵</span> {t.revealHint}
         </span>
         <span>
-          <span className="vx-kbd-tag">{modKey}C</span> Chép
+          <span className="vx-kbd-tag">{modKey}C</span> {t.copyHint}
         </span>
         <span>
-          <span className="vx-kbd-tag">Esc</span> Xóa/Ẩn
+          <span className="vx-kbd-tag">Esc</span> {t.escHint}
         </span>
       </div>
     </footer>
