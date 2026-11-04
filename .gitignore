@@ -43,3 +43,4 @@ pnpm-debug.log*
 .release_keys/
 *.key
 *.p12
+docs
